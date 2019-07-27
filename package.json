@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Application for supplying shipping rates to Shopify based on custom business log",
   "scripts": {
+      "build-client": "webpack --config webpack.config.js",
+    "build-functions": "NODE_ENV=production webpack --config webpack.functions.js",
+    "dev-server": "webpack-dev-server --open --config webpack.config.js",
     "lambda-build": "netlify-lambda build --config webpack.functions.js src/functions",
     "lambda-serve": "netlify-lambda serve --config webpack.functions.js src/functions",
     "ngrok": "ngrok http 8080 --subdomain=josh-wsn -host-header=localhost:8080",
@@ -21,6 +24,7 @@
   "dependencies": {
     "eslint": "^6.1.0",
     "eslint-loader": "^2.2.1",
+    "html-webpack-plugin": "^3.2.0",
     "shopify-api-node": "^2.21.0",
     "shopify-token": "^4.0.0",
     "webpack": "^4.38.0",
@@ -28,6 +32,7 @@
   },
   "devDependencies": {
     "dotenv-webpack": "^1.7.0",
-    "netlify-lambda": "^1.5.1"
+    "netlify-lambda": "^1.5.1",
+    "webpack-dev-server": "^3.7.2"
   }
 }
