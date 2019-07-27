@@ -1,0 +1,13 @@
+# build 
+/dist
+/functions
+
+# npm/bower
+node_modules
+bower_modules
+
+# local stuff
+.env
+demo.js
+try.js
+dat/
