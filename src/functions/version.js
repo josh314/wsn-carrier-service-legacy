@@ -3,7 +3,8 @@ export const handler = (event, context, callback) => {
     statusCode: 200,
     body: JSON.stringify({
       app: 'wsn-carrier-service',
-      node: process.version
+      version: APP_VERSION,
+      node_version: process.version,
     }, null, 2)
   });
 };

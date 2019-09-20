@@ -4,8 +4,3 @@
 	command = "bash deploy.sh"
 
 	functions = "functions"
-
-[[redirects]]
-	from = "/version"
-	to = "/.netlify/functions/version"
-	status = 200

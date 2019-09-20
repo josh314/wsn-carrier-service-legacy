@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Application for supplying shipping rates to Shopify based on custom business log",
   "scripts": {
-      "build-client": "webpack --config webpack.config.js",
+    "build-client": "webpack --config webpack.config.js",
     "build-functions": "NODE_ENV=production webpack --config webpack.functions.js",
     "dev-server": "webpack-dev-server --open --config webpack.config.js",
     "lambda-build": "netlify-lambda build --config webpack.functions.js src/functions",

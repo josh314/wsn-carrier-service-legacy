@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -34,9 +35,10 @@ module.exports = {
     historyApiFallback: true,
     port: 8080,
     proxy: {
-      '/version': 'http://localhost:9000/',
-      '/products': 'http://localhost:9000/',
-      // '/products/favicon.ico': 'http://localhost:8080/favicon.ico'
-    }
+      '/.netlify': {
+        target: 'http://localhost:9000',
+        pathRewrite: { '^/.netlify/functions': '' }
+      }
+    },
   }
 };
