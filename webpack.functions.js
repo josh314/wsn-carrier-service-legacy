@@ -5,7 +5,7 @@ const Dotenv = require('dotenv-webpack');
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
 
 const funcDir = path.join(__dirname, 'src', 'functions');
-const functions = fs.readdirSync(funcDir).map(f => f.match(/(.*)\.js$/)[1] ).reduce((obj, f)=>{
+const functions = fs.readdirSync(funcDir).map(f => f.match(/(.*)\.(js|ts)$/)[1] ).reduce((obj, f)=>{
   obj[f] = path.join(funcDir, f);
   return obj;
 }, {});
@@ -13,7 +13,8 @@ const functions = fs.readdirSync(funcDir).map(f => f.match(/(.*)\.js$/)[1] ).red
 
 plugins = [
   new webpack.DefinePlugin({
-    'APP_VERSION': JSON.stringify(packageJson.version),
+    '__APP__': JSON.stringify(packageJson.name),
+    '__VERSION__': JSON.stringify(packageJson.version),
   })
 ];
 
@@ -43,7 +44,24 @@ const opts = {
           { loader: 'eslint-loader' }
         ]
       },
+      {
+        test: /\.ts$/,
+        exclude: /(node_modules|bower_components)/,
+        resolve: {
+          modules: [
+            path.resolve('src/lib'),
+            'node_modules'
+          ]
+        },
+        use: [ 
+          { loader: 'ts-loader' }
+        ]
+      },
+       
     ]
+  },
+  resolve: {
+    extensions: [ '.ts', '.js' ]
   },
   plugins: plugins,
 };
