@@ -34,12 +34,6 @@ const opts = {
       {
         test: /\.m?js$/,
         exclude: /(node_modules|bower_components)/,
-        resolve: {
-          modules: [
-            path.resolve('src/lib'),
-            'node_modules'
-          ]
-        },
         use: [ 
           { loader: 'eslint-loader' }
         ]
@@ -47,21 +41,20 @@ const opts = {
       {
         test: /\.ts$/,
         exclude: /(node_modules|bower_components)/,
-        resolve: {
-          modules: [
-            path.resolve('src/lib'),
-            'node_modules'
-          ]
-        },
-        use: [ 
-          { loader: 'ts-loader' }
+        use: [
+          { loader: 'ts-loader' },
+          { loader: 'eslint-loader' }
         ]
       },
        
     ]
   },
   resolve: {
-    extensions: [ '.ts', '.js' ]
+    extensions: [ '.ts', '.js' ],
+    modules: [
+      path.resolve('src/lib'),
+      'node_modules'
+    ]
   },
   plugins: plugins,
 };

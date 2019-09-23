@@ -3,14 +3,20 @@
     // module options
     "module": "commonjs",
     // folder and file options
+    "baseUrl": "src/lib",
     // "outDir": "./dist",
-    "sourceMap": true,
     // strictness
     "noImplicitReturns": true,
     "noImplicitThis": true,
     // "noEmitOnError": true,
     // other
+    "sourceMap": true,
     "pretty": true,
-    "target": "ESNext"
+    "target": "ESNext",
+    "types": [
+      "node",
+      "aws-lambda",
+      "request-promise"
+    ]
   }
 }
