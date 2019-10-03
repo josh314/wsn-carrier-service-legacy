@@ -39,6 +39,7 @@
   "devDependencies": {
     "dotenv-webpack": "^1.7.0",
     "netlify-lambda": "^1.5.1",
+    "shopify-api-node": "^2.23.1",
     "webpack-dev-server": "^3.7.2"
   }
 }

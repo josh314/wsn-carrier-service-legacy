@@ -74,6 +74,31 @@ function computeRateFromProducts(products: Array<shopify.Product>): number {
   return 3000*products.length;
 }
 
+export async function getSampleRate(): Promise<RateResponse> {
+  let resp: RateResponse;
+  try{
+
+    resp = {
+      rates: []
+    };
+
+    const rate: Rate = {
+      service_name: 'Fast, Convenient Shipping',
+      description: 'Includes tracking. Sample response',
+      service_code: 'wholesaleninjas_shipping', //TODO!
+      currency: 'USD',
+      total_price: '10.00',
+    };
+
+    resp.rates.push(rate);
+
+    return resp;
+  }
+  catch(e) {
+    throw new Error(`Failure: Server error in \`getSampleRate\`: ${e}`);
+  }
+}
+
 export async function getRate(rateReq: RateRequest): Promise<RateResponse> {
   let resp: RateResponse;
   try{
@@ -82,13 +107,13 @@ export async function getRate(rateReq: RateRequest): Promise<RateResponse> {
     const products: Array<shopify.Product> = await shopifyClient.getProductData(productVariantIds);
 
     if(process.env.DEBUG) {
-      console.log('Product data:')
+      console.log('Product data:');
       console.log(products);
     }
 
     resp = {
       rates: []
-    }
+    };
 
     const rate: Rate = {
       service_name: 'Fast, Convenient Shipping',
@@ -96,7 +121,7 @@ export async function getRate(rateReq: RateRequest): Promise<RateResponse> {
       service_code: 'wholesaleninjas_shipping', //TODO!
       currency: 'USD',
       total_price: computeRateFromProducts(products).toString(),
-    }
+    };
 
     resp.rates.push(rate);
 
@@ -104,5 +129,6 @@ export async function getRate(rateReq: RateRequest): Promise<RateResponse> {
   }
   catch(e) {
     throw new Error(`Failure: Server error in \`getRate\`: ${e}`);
+    // return getSampleRate();
   }
 }

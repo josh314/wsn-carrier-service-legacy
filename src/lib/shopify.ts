@@ -128,7 +128,7 @@ function gqlProductVariant2Product(gqlProductVariant: GraphQlProductVariant) : P
     variantId: gid2ShopifyRestId(gqlProductVariant.id),
     productId: gid2ShopifyRestId(gqlProductVariant.product.id),
     tags: gqlProductVariant.product.tags,
-  }
+  };
   if(gqlProductVariant.product.totalUnits) {
     product.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
   }
@@ -196,7 +196,7 @@ export class Client {
       return products;
     }
     catch(e) {
-      throw new Error('Failure retrieving product data from Shopify servers.')
+      throw new Error('Failure retrieving product data from Shopify servers.');
     }
   }
 }

@@ -1,12 +1,19 @@
-import { getRate, RateRequestBody, RateResponse } from 'rates';
+import { getRate, getSampleRate, RateRequestBody, RateResponse } from 'rates';
 
 export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<any> => {
   try{
+    if(process.env.DEBUG) {
+      console.log('event:');
+      console.log(JSON.stringify(event,null,2));
+    }
     let resp: RateResponse;
-    if(event.httpMethod.toUpperCase() === 'POST' && event.body) {
+    if (event.httpMethod.toUpperCase() === 'POST' && event.body) {
       const body: RateRequestBody = JSON.parse(event.body);
       resp = await getRate(body.rate);
     }
+    else if (event.httpMethod.toUpperCase() === 'GET') {
+      resp = await getSampleRate();
+    } 
 
     if(!resp) {
       throw new Error('Invalid request.');
