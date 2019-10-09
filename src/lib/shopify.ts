@@ -69,26 +69,6 @@ interface GraphQlProductVariant {
   product: GraphQlProduct
 }
 
-// {
-//   "data": {
-//     "_0": {
-//       "id": string,
-//       "title": string,
-//       "product": {
-//         "id": string,
-//         "title": string,
-//         "tags": Array<string>,
-//         "metafields": {
-//           "edges": Array<MetafieldNode>
-//         }
-//       }
-//     }
-//   },
-//   "extensions": {
-//       ...blahblah
-//   }
-// }
-
 /*****************************
  * GraphQl request strings
  * 
