@@ -1,39 +1,42 @@
+import * as shopify from 'shopify';
+
 export interface RateRequestBody {
-  rate: RateRequest
+  readonly rate: RateRequest
 }
 export interface RateRequest {
-  origin: Location,
-  destination: Location,
-  items: Array<OrderItem>,
-  currency: string,
-  locale: string
+  readonly origin: Location,
+  readonly destination: Location,
+  readonly items: Array<OrderItem>,
+  readonly currency: string,
+  readonly locale: string
 }
 export interface Location {
-  country: string | null,
-  postal_code: string | null,
-  province: string | null,
-  city: string | null,
-  name: string | null,
-  address1: string | null,
-  address2: string | null,
-  address3: string | null,
-  phone: string | null,
-  fax: string | null,
-  email: string | null,
-  address_type: string | null,
-  company_name: string | null
+  readonly country: string | null,
+  readonly postal_code: string | null,
+  readonly province: string | null,
+  readonly city: string | null,
+  readonly name: string | null,
+  readonly address1: string | null,
+  readonly address2: string | null,
+  readonly address3: string | null,
+  readonly phone: string | null,
+  readonly fax: string | null,
+  readonly email: string | null,
+  readonly address_type: string | null,
+  readonly company_name: string | null
 }
 export interface OrderItem {
-  name: string | null,
-  sku: string | null,
-  quantity: number,
-  grams: number,
-  price: number,
-  vendor: string | null,
-  requires_shipping: boolean,
-  taxable: boolean,
-  fulfillment_service: string | null,
-  properties: string | null,
-  product_id: number,
-  variant_id: number
+  readonly name: string | null,
+  readonly sku: string | null,
+  readonly quantity: number,
+  readonly grams: number,
+  readonly price: number,
+  readonly vendor: string | null,
+  readonly requires_shipping: boolean,
+  readonly taxable: boolean,
+  readonly fulfillment_service: string | null,
+  readonly properties: string | null,
+  readonly product_id: number,
+  readonly variant_id: number,
+  shopifyProduct: shopify.Product
 }

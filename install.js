@@ -25,12 +25,19 @@ if(command==='list') {
   cmd = shopify.carrierService.list()
 }
 else if (command==='create') {
-  cmd = shopify.carrierService.create({
+  const carrierServiceSettings = {
     "name": "Wholesale Ninjas Shipping Service (ngrok)",
-    // "callback_url": "https://5d89238ad38da200077fce00--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
     "callback_url":"https://josh-wsn.ngrok.io/.netlify/functions/get-rate",
     "service_discovery": true
-  });
+  }
+  // const carrierServiceSettings = {
+  //   "name": "Wholesale Ninjas Shipping Service",
+  //   "callback_url": "https://shipping-rates.wholesaleninjas.com/.netlify/functions/get-rate",
+  //   // "callback_url": "https://5d89238ad38da200077fce00--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
+  //   "service_discovery": true
+  // }
+
+  cmd = shopify.carrierService.create(carrierServiceSettings);
 }
 else if (command==='delete' && args.id) {
   const id = args.id;

@@ -9,16 +9,39 @@ interface ClientAuthOpts {
 	readonly accessToken: string,
 }
 
+// Represents all the relevant info from the Shopify product variant and it's parent product
+export class Product {
+  public readonly productId: number;
+  public readonly variantId: number;
+  public readonly totalUnits?: number;
+  public readonly tags: Array<string>;
+  public readonly isBoxLot: boolean;
+  public readonly isPallet: boolean;
+  public readonly isTruckload: boolean;
+  
+  public constructor(gqlProductVariant: GraphQlProductVariant) {
+    this.variantId = gid2ShopifyRestId(gqlProductVariant.id);
+    this.productId = gid2ShopifyRestId(gqlProductVariant.product.id);
+    this.tags = gqlProductVariant.product.tags;
+    if(gqlProductVariant.product.totalUnits) {
+      this.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
+    }
+
+    // Use a lenient version of canonical tags below since some of these may be created by hand.
+    this.isBoxLot = this.tags.some( t => 'box lots'.includes( t.toLowerCase() ) );
+    this.isTruckload = this.tags.some( t => 'truckloads'.includes( t.toLowerCase() ) );
+    this.isPallet = this.tags.some( t => 'pallets'.includes( t.toLowerCase() ) );
+  }
+
+  public qualifiesForPalletBreakdownService(): boolean {
+    return this.isPallet;
+  }
+
+}
+
 interface ShopifyRequestOpts {
   // debug?: boolean,
   gqlQuery: string
-}
-
-export interface Product {
-  productId: number,
-  variantId: number,
-  totalUnits?: number,
-  tags: Array<string>
 }
 
 interface GraphQlResponse {
@@ -84,7 +107,7 @@ const gqlQueries = {
             id
             title
             tags
-            totalUnits: metafield(namespace:lot, key:totalUnits) {
+            totalUnits: metafield(namespace:"lot", key:"totalUnits") {
               value
             }
           }          
@@ -103,17 +126,17 @@ function arrayifyGqlMultiData(gqlMultiData: GraphQlMultiData): Array<GraphQlProd
   return Object.entries(gqlMultiData).map( x => x[1] );
 }
 
-function gqlProductVariant2Product(gqlProductVariant: GraphQlProductVariant) : Product {
-  let product: Product = {
-    variantId: gid2ShopifyRestId(gqlProductVariant.id),
-    productId: gid2ShopifyRestId(gqlProductVariant.product.id),
-    tags: gqlProductVariant.product.tags,
-  };
-  if(gqlProductVariant.product.totalUnits) {
-    product.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
-  }
-  return product;
-}
+// function gqlProductVariant2Product(gqlProductVariant: GraphQlProductVariant) : Product {
+//   let product: Product = {
+//     variantId: gid2ShopifyRestId(gqlProductVariant.id),
+//     productId: gid2ShopifyRestId(gqlProductVariant.product.id),
+//     tags: gqlProductVariant.product.tags,
+//   };
+//   if(gqlProductVariant.product.totalUnits) {
+//     product.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
+//   }
+//   return product;
+// }
 
 /*****************************************
  * Client
@@ -172,7 +195,7 @@ export class Client {
       });
     
       const gqlProductVariants: Array<GraphQlProductVariant> = arrayifyGqlMultiData(shopifyResp.data);
-      const products: Array<Product> = gqlProductVariants.map(gqlProductVariant2Product);
+      const products: Array<Product> = gqlProductVariants.map( _ => new Product(_) );
       return products;
     }
     catch(e) {
