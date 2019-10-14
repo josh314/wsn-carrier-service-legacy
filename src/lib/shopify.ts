@@ -22,19 +22,24 @@ export class Product {
   public constructor(gqlProductVariant: GraphQlProductVariant) {
     this.variantId = gid2ShopifyRestId(gqlProductVariant.id);
     this.productId = gid2ShopifyRestId(gqlProductVariant.product.id);
-    this.tags = gqlProductVariant.product.tags;
+    this.tags = gqlProductVariant.product.tags.map( t => t.toLowerCase());
     if(gqlProductVariant.product.totalUnits) {
       this.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
     }
 
     // Use a lenient version of canonical tags below since some of these may be created by hand.
-    this.isBoxLot = this.tags.some( t => 'box lots'.includes( t.toLowerCase() ) );
-    this.isTruckload = this.tags.some( t => 'truckloads'.includes( t.toLowerCase() ) );
-    this.isPallet = this.tags.some( t => 'pallets'.includes( t.toLowerCase() ) );
+    this.isBoxLot = this.tags.some( t => 'box lots'.includes( t ) );
+    this.isTruckload = this.tags.some( t => 'truckloads'.includes( t ) );
+    this.isPallet = this.tags.some( t => 'pallets'.includes( t ) );
   }
 
   public qualifiesForPalletBreakdownService(): boolean {
-    return this.isPallet;
+    if(this.isPallet) {
+      return !this.tags.some( t => 'oversized'.includes( t ) );
+    }
+    else {
+      return false;
+    }
   }
 
 }
