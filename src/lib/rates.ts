@@ -56,12 +56,11 @@ export async function compute(opts: ComputeRateOptions): Promise<number> {
     const products: Array<shopify.Product> = await shopifyClient.getProductData(productVariantIds);
 
     if(process.env.DEBUG) {
-      console.log('n');
+      console.log('\n');
       console.log('Product data:');
       console.log(products);
     }
 
-    // items.forEach(attachProductToItem(products));
     const items: Array<DressedOrderItem> = opts.items.map(attachProductToItem(products));
 
 
