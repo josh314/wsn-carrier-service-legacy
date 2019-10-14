@@ -1,6 +1,6 @@
-import { Location, OrderItem } from 'rate-request';
-
+import { Location, OrderItem, DressedOrderItem } from 'rate-request';
 import * as shopify from 'shopify';
+import * as zoneRates from 'zone-rates';
 
 /*********************************************
  * Types
@@ -27,9 +27,11 @@ const shopifyClient: shopify.Client = new shopify.Client({
  * 
  * ********************************************/
 
-const attachProductToItem = (products: Array<shopify.Product> ) => {
-  return (item: OrderItem): void => {
-    item.shopifyProduct = products.find( p => item.variant_id === p.variantId );
+const attachProductToItem = ( products: Array<shopify.Product> ) => {
+  return (item: OrderItem): DressedOrderItem => {
+    const newItem: DressedOrderItem = Object.assign({}, item);
+    newItem.shopifyProduct = products.find( p => item.variant_id === p.variantId );
+    return newItem;
   };
 };
 
@@ -49,31 +51,37 @@ const palletsShipping = function(items: Array<OrderItem>): number {
 * 
 */
 export async function compute(opts: ComputeRateOptions): Promise<number> {
-  const items: Array<OrderItem> = opts.items;
   try{
-    const productVariantIds: Array<number> = items.map( x => x.variant_id ).filter(x=>x);
+    const productVariantIds: Array<number> = opts.items.map( x => x.variant_id ).filter(x=>x);
     const products: Array<shopify.Product> = await shopifyClient.getProductData(productVariantIds);
 
     if(process.env.DEBUG) {
+      console.log('n');
       console.log('Product data:');
       console.log(products);
     }
 
-    items.forEach(attachProductToItem(products));
+    // items.forEach(attachProductToItem(products));
+    const items: Array<DressedOrderItem> = opts.items.map(attachProductToItem(products));
+
+
+    const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
+
+    const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
+    const palletBreakdownItems = palletItems.filter( item => item.shopifyProduct.qualifiesForPalletBreakdownService() );
+    const palletFreightItems = palletItems.filter( item => !item.shopifyProduct.qualifiesForPalletBreakdownService() );
+    // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
+
+    // Shipping costs in USD
+    let totalShippingCosts = 0;
+    totalShippingCosts += zoneRates.getBoxRate( opts.destination.province , boxLotItems.reduce( (total, item): number => total + item.quantity , 0 ));
+    totalShippingCosts += zoneRates.getPalletBreakdownRate( opts.destination.province , palletBreakdownItems.reduce( (total, item): number => total + item.quantity , 0 ) );
+    totalShippingCosts += zoneRates.getPalletFreightRate( opts.destination.province , palletFreightItems.reduce( (total, item): number => total + item.quantity , 0 ) );
+
+    return totalShippingCosts*100; // Shopify expects result in cents
   }
   catch(e) {
-    console.log('Error attaching product data to order items.');
     console.log(e);
+    throw new Error(e);
   }
-
-  const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
-  const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
-  const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
-
-  // Shipping costs in USD
-  let total = 0;
-  total += boxLotsShipping(boxLotItems);
-  total += palletsShipping(palletItems);
-
-  return total*100; // Shopify expects result in cents
 }

@@ -1,5 +1,7 @@
 import * as shopify from 'shopify';
 
+// The below interfaces are largely determined by the data structures used in Shopify webhook request
+
 export interface RateRequestBody {
   readonly rate: RateRequest
 }
@@ -13,7 +15,7 @@ export interface RateRequest {
 export interface Location {
   readonly country: string | null,
   readonly postal_code: string | null,
-  readonly province: string | null,
+  readonly province: string | null, // note `state` since Shopify is a Canadian company
   readonly city: string | null,
   readonly name: string | null,
   readonly address1: string | null,
@@ -38,5 +40,8 @@ export interface OrderItem {
   readonly properties: string | null,
   readonly product_id: number,
   readonly variant_id: number,
-  shopifyProduct: shopify.Product
+}
+
+export interface DressedOrderItem extends OrderItem {
+  shopifyProduct?: shopify.Product
 }
