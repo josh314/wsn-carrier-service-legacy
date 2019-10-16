@@ -28,14 +28,17 @@ export class Product {
     }
 
     // Use a lenient version of canonical tags below since some of these may be created by hand.
-    this.isBoxLot = this.tags.some( t => 'box lots'.includes( t ) );
-    this.isTruckload = this.tags.some( t => 'truckloads'.includes( t ) );
-    this.isPallet = this.tags.some( t => 'pallets'.includes( t ) );
+    this.isBoxLot = this.tags.some( t => t.match(/box lots?/) );
+    this.isTruckload = this.tags.some( t => t.match(/truckloads?/) );
+    this.isPallet = this.tags.some( t => t.match(/pallets?/) );
   }
-
-  public qualifiesForPalletBreakdownService(): boolean {
-    if(this.isPallet) {
-      return !this.tags.some( t => 'oversized'.includes( t ) );
+  
+  public shipsByFreight(): boolean {
+    if( this.isTruckload ) {
+      return true;
+    }
+    else if ( this.isPallet ) {
+      return this.tags.some( t => t.match(/pallets?:oversized/) );
     }
     else {
       return false;
@@ -130,18 +133,6 @@ const gid2ShopifyRestId = (gid: string): number | null => {
 function arrayifyGqlMultiData(gqlMultiData: GraphQlMultiData): Array<GraphQlProductVariant> {
   return Object.entries(gqlMultiData).map( x => x[1] );
 }
-
-// function gqlProductVariant2Product(gqlProductVariant: GraphQlProductVariant) : Product {
-//   let product: Product = {
-//     variantId: gid2ShopifyRestId(gqlProductVariant.id),
-//     productId: gid2ShopifyRestId(gqlProductVariant.product.id),
-//     tags: gqlProductVariant.product.tags,
-//   };
-//   if(gqlProductVariant.product.totalUnits) {
-//     product.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
-//   }
-//   return product;
-// }
 
 /*****************************************
  * Client
