@@ -80,7 +80,7 @@ const zoneRates: Array<ZoneRate> = [
  ***************************************************/
 
 export function getBoxRate(state: string, numberOfLots: number): number {
-  return zoneRates[stateZones.get(state)].boxLot * numberOfLots;
+  return (numberOfLots > 0) ? zoneRates[stateZones.get(state)].boxLot : 0;
 }
 
 export function getPalletBreakdownRate(state: string, numberOfLots: number): number {
