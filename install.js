@@ -6,7 +6,7 @@ const die = (msg) => {
   process.exit(1);
 };
 
-const args = require('minimist')(process.argv.slice(2), { alias: { 'command': ['c', 'cmd'], 'store': ['s'] } });
+const args = require('minimist')(process.argv.slice(2), { alias: { 'command': ['c', 'cmd'], 'store': ['s'], 'deploy': [ 'd' ] } });
 
 const store = args.store ? args.store : 'ninjasAndSuch';
 const command = args.command ? args.command : 'list';
@@ -19,23 +19,26 @@ const shopify = new Shopify({
   password: shopifyConfig.auth.password,
 });
 
+
+const deploys = {
+  "local": "https://josh-wsn.ngrok.io/.netlify/functions/get-rate",
+  "dev": "https://dev--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
+  "staging": "https://staging--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
+  "prod": "https://shipping-rates.wholesaleninjas.com/.netlify/functions/get-rate",
+};
+
 let cmd;
 
 if(command==='list') {
   cmd = shopify.carrierService.list()
 }
 else if (command==='create') {
+
   const carrierServiceSettings = {
-    "name": "Wholesale Ninjas Shipping Service (ngrok)",
-    "callback_url":"https://josh-wsn.ngrok.io/.netlify/functions/get-rate",
+    "name": "Wholesale Ninjas Shipping Service",
+    "callback_url": deploys[args.deploy || "local"],
     "service_discovery": true
   }
-  // const carrierServiceSettings = {
-  //   "name": "Wholesale Ninjas Shipping Service",
-  //   "callback_url": "https://shipping-rates.wholesaleninjas.com/.netlify/functions/get-rate",
-  //   // "callback_url": "https://5d89238ad38da200077fce00--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
-  //   "service_discovery": true
-  // }
 
   cmd = shopify.carrierService.create(carrierServiceSettings);
 }
