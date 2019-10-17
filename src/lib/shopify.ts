@@ -28,9 +28,9 @@ export class Product {
     }
 
     // Use a lenient version of canonical tags below since some of these may be created by hand.
-    this.isBoxLot = this.tags.some( t => t.match(/box lots?/) );
-    this.isTruckload = this.tags.some( t => t.match(/truckloads?/) );
-    this.isPallet = this.tags.some( t => t.match(/pallets?/) );
+    this.isBoxLot = this.tags.some( t => t.match(/box lots?/i) );
+    this.isTruckload = this.tags.some( t => t.match(/truckloads?/i) );
+    this.isPallet = this.tags.some( t => t.match(/pallets?/i) );
   }
   
   public shipsByFreight(): boolean {
@@ -38,7 +38,7 @@ export class Product {
       return true;
     }
     else if ( this.isPallet ) {
-      return this.tags.some( t => t.match(/pallets?:oversized/) );
+      return this.tags.some( (t: string): boolean => !!t.match(/pallets?:(oversized|bulky)/i) );
     }
     else {
       return false;
