@@ -6,7 +6,15 @@ const die = (msg) => {
   process.exit(1);
 };
 
-const args = require('minimist')(process.argv.slice(2), { alias: { 'command': ['c', 'cmd'], 'store': ['s'], 'deploy': [ 'd' ] } });
+
+const args = require('minimist')(process.argv.slice(2), { 
+  alias: {
+    'command': ['c', 'cmd'],
+    'store': ['s'],
+    'deploy': [ 'd' ],
+    'callbackUrl': [ 'cb', 'cb_url', 'cbUrl', 'callback', 'callback_url' ]
+  }
+});
 
 const store = args.store ? args.store : 'ninjasAndSuch';
 const command = args.command ? args.command : 'list';
@@ -36,7 +44,7 @@ else if (command==='create') {
 
   const carrierServiceSettings = {
     "name": "Wholesale Ninjas Shipping Service",
-    "callback_url": deploys[args.deploy || "local"],
+    "callback_url": args.callbackUrl || deploys[args.deploy || "local"],
     "service_discovery": true
   }
 
