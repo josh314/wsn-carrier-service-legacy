@@ -195,6 +195,7 @@ export class Client {
       return products;
     }
     catch(e) {
+      console.log(e);
       throw new Error('Failure retrieving product data from Shopify servers.');
     }
   }

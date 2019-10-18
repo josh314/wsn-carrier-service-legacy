@@ -80,7 +80,7 @@ const zoneRates: Array<ZoneRate> = [
  ***************************************************/
 
 export function getBoxRate(state: string, numberOfLots: number): number {
-   //TODO: temporary logic for the all-you-can-ship promotion
+   //TODO: temporary logic for the all-you-can-ship promotion period
   return (numberOfLots > 0) ? zoneRates[stateZones.get(state)].boxLot : 0;
 }
 
