@@ -2,6 +2,8 @@ import { RateRequest, RateRequestBody } from 'rate-request';
 
 import { Rate, ComputeRateOptions, computeRates } from 'rates';
 
+import { sendErrorNotification } from 'notify';
+
 /**************************************************
  * Types
  * 
@@ -43,6 +45,12 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
   }
   catch (e) {
     console.error(e);
+    sendErrorNotification(
+      e,
+      event,
+      context,
+      rateRequestBody
+    )
     return {
       statusCode: 500,
       body: JSON.stringify({ error: true, message: e.message }),

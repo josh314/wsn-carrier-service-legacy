@@ -22,6 +22,7 @@
   },
   "homepage": "https://gitlab.com/wazue/wsn-carrier-service#readme",
   "dependencies": {
+    "@sendgrid/mail": "^6.4.0",
     "@types/aws-lambda": "^8.10.31",
     "@types/request-promise": "^4.1.44",
     "@typescript-eslint/eslint-plugin": "^2.3.0",
