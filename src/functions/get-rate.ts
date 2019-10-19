@@ -17,6 +17,7 @@ interface RateResponse {
  * ******************************/
 
 export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<any> => {
+  let rateRequestBody: RateRequestBody;
   try{
     if(process.env.DEBUG) {
       console.log('event:');
@@ -24,8 +25,8 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     }
     let resp: RateResponse;
     if (event.httpMethod.toUpperCase() === 'POST' && event.body) {
-      const body: RateRequestBody = JSON.parse(event.body);
-      resp = await getRate(body.rate);
+      rateRequestBody = JSON.parse(event.body);
+      resp = await getRate(rateRequestBody.rate);
     }
     else if (event.httpMethod.toUpperCase() === 'GET') {
       resp = await getSampleRate();
