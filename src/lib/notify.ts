@@ -4,11 +4,11 @@ import { RateRequestBody } from 'rate-request';
 import sendgrid = require('@sendgrid/mail');
 
 export function sendErrorNotification(
-    error: NodeJS.ErrnoException,
-    event: AWSLambda.APIGatewayProxyEvent,
-    context: AWSLambda.APIGatewayEventRequestContext,
-    rateRequestBody: RateRequestBody
-  ): Promise<any> {
+  error: NodeJS.ErrnoException,
+  event: AWSLambda.APIGatewayProxyEvent,
+  context: AWSLambda.APIGatewayEventRequestContext,
+  rateRequestBody: RateRequestBody
+): Promise<any> {
   sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
 
   const msg = {
@@ -29,6 +29,6 @@ export function sendErrorNotification(
         ${context ? `<dt>Lambda Context</dt><dd><pre>${JSON.stringify(context, null, 2)}</pre></dd>`: ''}
       </dl>
     `
-  }
+  };
   return sendgrid.send(msg);
 }
