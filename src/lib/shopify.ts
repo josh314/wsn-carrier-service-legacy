@@ -118,6 +118,12 @@ const gqlQueries = {
             totalUnits: metafield(namespace:"lot", key:"totalUnits") {
               value
             }
+            numBoxes: metafield(namespace:"shipping", key:"numBoxes") {
+              value
+            }
+            shippingItems: metafield(namespace:"shipping", key:"shippingItems") {
+              value
+            }
           }          
         }`).join('')}}
     `;
@@ -195,7 +201,8 @@ export class Client {
       return products;
     }
     catch(e) {
-      throw new Error('Failure retrieving product data from Shopify servers.');
+      console.log(e);
+      throw new Error(e);
     }
   }
 }
