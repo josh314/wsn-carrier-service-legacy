@@ -7,5 +7,6 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     app: __APP__,
     version: __VERSION__,
     node_version: process.version,
+    environment: process.env.NODE_ENV
   }, null, 2)
 });
