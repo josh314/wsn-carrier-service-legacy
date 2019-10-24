@@ -197,7 +197,7 @@ export class Client {
       });
     
       const gqlProductVariants: Array<GraphQlProductVariant> = arrayifyGqlMultiData(shopifyResp.data);
-      const products: Array<Product> = gqlProductVariants.map( _ => new Product(_) );
+      const products: Array<Product> = gqlProductVariants.filter( _ => _ /* filter out null */ ).map( _ => new Product(_) );
       return products;
     }
     catch(e) {
