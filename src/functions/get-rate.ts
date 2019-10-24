@@ -45,12 +45,14 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
   }
   catch (e) {
     console.error(e);
-    sendErrorNotification(
-      e,
-      event,
-      context,
-      rateRequestBody
-    )
+    if( process.env.NODE_ENV === 'production' ) {
+      sendErrorNotification(
+        e,
+        event,
+        context,
+        rateRequestBody
+      );
+    }
     return {
       statusCode: 500,
       body: JSON.stringify({ error: true, message: e.message }),
