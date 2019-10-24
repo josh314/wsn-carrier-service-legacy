@@ -9,12 +9,31 @@ interface ClientAuthOpts {
 	readonly accessToken: string,
 }
 
+interface ShippingItem {
+  weight: number,
+  weightUnits: string,
+  height: number,
+  heightUnits: string,
+  length: number,
+  lengthUnits: string,
+  width: number,
+  widthUnits: string,
+}
+
 // Represents all the relevant info from the Shopify product variant and it's parent product
 export class Product {
+  // identifiers
   public readonly productId: number;
   public readonly variantId: number;
+  public readonly sku: string;
+
+  // metadata
   public readonly totalUnits?: number;
+  public readonly numBoxes?: number;
+  public readonly shippingItems?: Array<ShippingItem>;
   public readonly tags: Array<string>;
+
+  // Lot type
   public readonly isBoxLot: boolean;
   public readonly isPallet: boolean;
   public readonly isTruckload: boolean;
@@ -22,6 +41,31 @@ export class Product {
   public constructor(gqlProductVariant: GraphQlProductVariant) {
     this.variantId = gid2ShopifyRestId(gqlProductVariant.id);
     this.productId = gid2ShopifyRestId(gqlProductVariant.product.id);
+    this.sku = gqlProductVariant.sku;
+
+
+    try {
+      this.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
+    }
+    catch(e) {
+      console.log(`No totalUnits for product variant ${this.variantId}.`);
+    }
+
+    try {
+      this.numBoxes = parseInt(gqlProductVariant.product.numBoxes.value as string);
+    }
+    catch(e) {
+      console.log(`No numBoxes for product variant ${this.variantId}.`);
+    }
+
+    try {
+      this.shippingItems = JSON.parse(gqlProductVariant.product.shippingItems.value);
+    }
+    catch(e) {
+      console.log(`No valid shippingItems JSON for product variant ${this.variantId}.`);
+    }
+
+
     this.tags = gqlProductVariant.product.tags.map( t => t.toLowerCase());
     if(gqlProductVariant.product.totalUnits) {
       this.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
@@ -92,11 +136,17 @@ interface GraphQlProduct {
   totalUnits?: null | {
     value: string | number
   }
+  numBoxes?: null | {
+    value: string | number
+  }
+  shippingItems?: null | {
+    value: string
+  }
 }
 
 interface GraphQlProductVariant {
   id: string,
-  title: string,
+  sku: string,
   product: GraphQlProduct
 }
 
@@ -110,7 +160,7 @@ const gqlQueries = {
       {${productVariantGraphQlIds.map((gid,idx)=>`
         _${idx}: productVariant(id: "${gid}") {
           id
-          title
+          sku
           product {
             id
             title
