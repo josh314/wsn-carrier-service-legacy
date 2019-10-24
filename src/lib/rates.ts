@@ -68,6 +68,20 @@ const shopifyClient: shopify.Client = new shopify.Client({
  * 
  * ********************************************/
 
+const getTotalShippingItems = (items: Array<DressedOrderItem>): number => {
+  return items.reduce( (total, item): number => {
+    if( item.shopifyProduct.shippingItems && item.shopifyProduct.shippingItems.length > 0 ) {
+      return total + item.shopifyProduct.shippingItems.length * item.quantity;
+    }
+    else if( item.shopifyProduct.numBoxes ) {
+      return total + item.shopifyProduct.numBoxes * item.quantity;
+    }
+    else {
+      return total + item.quantity;
+    }
+  }, 0);
+};
+
 const attachProductToItem = ( products: Array<shopify.Product> ) => {
   return (item: OrderItem): DressedOrderItem => {
     const newItem: DressedOrderItem = Object.assign({}, item);
@@ -83,13 +97,13 @@ const getPalletRates = function(items: Array<DressedOrderItem>, destination: Loc
 
     if(items.every( i => !i.shopifyProduct.shipsByFreight() )) {
       palletRates.push({
-        cost: zoneRates.getPalletBreakdownRate( destination.province , items.reduce( (total, item): number => total + item.quantity , 0 ) ),
+        cost: zoneRates.getPalletBreakdownRate( destination.province , getTotalShippingItems( items ) ),
         isFreight: false
       });
     }
 
     palletRates.push({
-      cost: zoneRates.getPalletFreightRate( destination.province , items.reduce( (total, item): number => total + item.quantity , 0 ) ),
+      cost: zoneRates.getPalletFreightRate( destination.province , getTotalShippingItems( items ) ),
       isFreight: true
     });
 
@@ -122,7 +136,7 @@ export async function computeRates(opts: ComputeRateOptions): Promise< Array<Rat
 
     const palletRates: Array<PalletRate> = getPalletRates(palletItems, opts.destination);
 
-    const boxRate = zoneRates.getBoxRate( opts.destination.province , boxLotItems.reduce( (total, item): number => total + item.quantity , 0 ));
+    const boxRate = zoneRates.getBoxRate( opts.destination.province , getTotalShippingItems( boxLotItems ) );
 
     let rates: Array<Rate>;
 
