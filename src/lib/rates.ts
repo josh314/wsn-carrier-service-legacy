@@ -110,7 +110,7 @@ export async function computeRates(opts: ComputeRateOptions): Promise< Array<Rat
     if(process.env.DEBUG) {
       console.log('\n');
       console.log('Product data:');
-      console.log(products);
+      console.log( JSON.stringify(products, null, 2) );
     }
 
     const items: Array<DressedOrderItem> = opts.items.map(attachProductToItem(products));
