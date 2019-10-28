@@ -1,17 +1,6 @@
-import { RateRequest, RateRequestBody } from 'rate-request';
-
-import { Rate, ComputeRateOptions, computeRates } from 'rates';
+import { computeRates } from 'rates';
 
 import { sendErrorNotification } from 'notify';
-
-/**************************************************
- * Types
- * 
- ***************************************/
-
-interface RateResponse {
-  rates: Array<Rate>
-}
 
 /****************************************** 
  * Handler
@@ -19,13 +8,13 @@ interface RateResponse {
  * ******************************/
 
 export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<any> => {
-  let rateRequestBody: RateRequestBody | undefined;
+  let rateRequestBody: CarrierService.RateRequestBody | undefined;
   try{
     if(process.env.DEBUG) {
       console.log('event:');
       console.log(JSON.stringify(event,null,2));
     }
-    let resp: RateResponse | undefined;
+    let resp: CarrierService.RateResponse | undefined;
     if (event.httpMethod.toUpperCase() === 'POST' && event.body) {
       rateRequestBody = JSON.parse(event.body);
       resp = await getRate(rateRequestBody!.rate);
@@ -61,15 +50,15 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
 };
 
 
-async function getSampleRate(): Promise<RateResponse> {
-  let resp: RateResponse;
+async function getSampleRate(): Promise<CarrierService.RateResponse> {
+  let resp: CarrierService.RateResponse;
   try{
 
     resp = {
       rates: []
     };
 
-    const rate: Rate = {
+    const rate: CarrierService.Rate = {
       service_name: 'Fast, Convenient Shipping',
       description: 'Includes tracking. Sample response',
       service_code: 'wholesaleninjas_shipping', //TODO!
@@ -86,11 +75,11 @@ async function getSampleRate(): Promise<RateResponse> {
   }
 }
 
-async function getRate(rateReq: RateRequest): Promise<RateResponse> {
-  let resp: RateResponse;
+async function getRate(rateReq: CarrierService.RateRequest): Promise<CarrierService.RateResponse> {
+  let resp: CarrierService.RateResponse;
   try{
 
-    const computeRateOpts: ComputeRateOptions = {
+    const computeRateOpts: CarrierService.ComputeRateOptions = {
       destination: rateReq.destination,
       items: rateReq.items
     };

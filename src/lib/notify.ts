@@ -1,13 +1,12 @@
 declare const __APP__: string;
 
-import { RateRequestBody } from 'rate-request';
 import sendgrid = require('@sendgrid/mail');
 
 export function sendErrorNotification(
   error: NodeJS.ErrnoException,
   event: AWSLambda.APIGatewayProxyEvent,
   context: AWSLambda.APIGatewayEventRequestContext,
-  rateRequestBody?: RateRequestBody
+  rateRequestBody?: CarrierService.RateRequestBody
 ): Promise<any> {
   sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 

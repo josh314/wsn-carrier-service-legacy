@@ -20,7 +20,8 @@
     "types": [
       "node",
       "aws-lambda",
-      "request-promise"
+      "request-promise",
+      "./src"
     ]
   }
 }

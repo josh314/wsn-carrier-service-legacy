@@ -1,18 +1,18 @@
-import * as shopify from 'shopify';
-
 // The below interfaces are largely determined by the data structures used in Shopify webhook request
 
 export interface RateRequestBody {
   readonly rate: RateRequest
 }
+
 export interface RateRequest {
-  readonly origin: Location,
-  readonly destination: Location,
+  readonly origin: Contact,
+  readonly destination: Contact,
   readonly items: Array<OrderItem>,
   readonly currency: string,
   readonly locale: string
 }
-export interface Location {
+
+export interface Contact {
   readonly country: string,
   readonly postal_code: string,
   readonly province: string, // note `state` since Shopify is a Canadian company
@@ -27,6 +27,7 @@ export interface Location {
   readonly address_type?: string | null,
   readonly company_name?: string | null
 }
+
 export interface OrderItem {
   readonly name?: string | null,
   readonly sku?: string | null,
@@ -43,5 +44,28 @@ export interface OrderItem {
 }
 
 export interface DressedOrderItem extends OrderItem {
-  shopifyProduct: shopify.Product
+  shopifyProduct: Shopify.Product
 }
+
+export interface ComputeRateOptions {
+  destination: Contact,
+  items: Array<OrderItem>
+}
+
+export class Rate {
+  public readonly service_name: string;
+  public readonly description: string;
+  public readonly service_code: string;
+  public readonly currency: string;
+  public readonly total_price: string;
+  public readonly phone_required?: boolean;
+  public readonly min_delivery_date?: string;
+  public readonly max_delivery_date?: string;
+}
+
+export interface RateResponse {
+  rates: Array<Rate>
+}
+
+
+export as namespace CarrierService;

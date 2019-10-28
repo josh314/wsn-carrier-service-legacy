@@ -1,4 +1,3 @@
-import { Location, OrderItem, DressedOrderItem } from 'rate-request';
 import * as shopify from 'shopify';
 import * as zoneRates from 'zone-rates';
 
@@ -7,7 +6,7 @@ import * as zoneRates from 'zone-rates';
  * 
  * *******************/
 
-export class Rate {
+export class Rate implements CarrierService.Rate {
   public readonly service_name: string;
   public readonly description: string;
   public readonly service_code: string;
@@ -43,11 +42,6 @@ export class Rate {
   }
 }
 
-export interface ComputeRateOptions {
-  destination: Location,
-  items: Array<OrderItem>
-}
-
 interface PalletRate {
   cost: number,
   isFreight: boolean
@@ -68,7 +62,7 @@ const shopifyClient: shopify.Client = new shopify.Client({
  * 
  * ********************************************/
 
-const getTotalShippingItems = (items: Array<DressedOrderItem>): number => {
+const getTotalShippingItems = (items: Array<CarrierService.DressedOrderItem>): number => {
   return items.reduce( (total, item): number => {
     if( item.shopifyProduct.shippingItems && item.shopifyProduct.shippingItems.length > 0 ) {
       return total + item.shopifyProduct.shippingItems.length * item.quantity;
@@ -83,8 +77,8 @@ const getTotalShippingItems = (items: Array<DressedOrderItem>): number => {
 };
 
 const attachProductToItem = ( products: Array<shopify.Product> ) => {
-  return (item: OrderItem): DressedOrderItem => {
-    const newItem: DressedOrderItem = Object.assign(
+  return (item: CarrierService.OrderItem): CarrierService.DressedOrderItem => {
+    const newItem: CarrierService.DressedOrderItem = Object.assign(
       { shopifyProduct: products.find( p => item.variant_id === p.variantId ) as shopify.Product },
       item
     );
@@ -92,7 +86,7 @@ const attachProductToItem = ( products: Array<shopify.Product> ) => {
   };
 };
 
-const getPalletRates = function(items: Array<DressedOrderItem>, destination: Location): Array<PalletRate> {
+const getPalletRates = function(items: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact): Array<PalletRate> {
   const palletRates: Array<PalletRate> = [];
 
   if(items.length > 0) {
@@ -118,7 +112,7 @@ const getPalletRates = function(items: Array<DressedOrderItem>, destination: Loc
 * Main
 * 
 *********/
-export async function computeRates(opts: ComputeRateOptions): Promise< Array<Rate> > {
+export async function computeRates(opts: CarrierService.ComputeRateOptions): Promise< Array<Rate> > {
   try{
     const productVariantIds: Array<number> = opts.items.map( x => x.variant_id ).filter(x=>x);
     const products: Array<shopify.Product> = await shopifyClient.getProductData(productVariantIds);
@@ -129,7 +123,7 @@ export async function computeRates(opts: ComputeRateOptions): Promise< Array<Rat
       console.log( JSON.stringify(products, null, 2) );
     }
 
-    const items: Array<DressedOrderItem> = opts.items.map(attachProductToItem(products));
+    const items: Array<CarrierService.DressedOrderItem> = opts.items.map(attachProductToItem(products));
 
 
     const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
