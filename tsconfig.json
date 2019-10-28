@@ -6,9 +6,13 @@
     "baseUrl": "src/lib",
     // "outDir": "./dist",
     // strictness
+    "noEmitOnError": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    // "noEmitOnError": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
     // other
     "sourceMap": true,
     "pretty": true,

@@ -7,9 +7,9 @@ export function sendErrorNotification(
   error: NodeJS.ErrnoException,
   event: AWSLambda.APIGatewayProxyEvent,
   context: AWSLambda.APIGatewayEventRequestContext,
-  rateRequestBody: RateRequestBody
+  rateRequestBody?: RateRequestBody
 ): Promise<any> {
-  sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
+  sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 
   const msg = {
     to: 'josh314@gmail.com',

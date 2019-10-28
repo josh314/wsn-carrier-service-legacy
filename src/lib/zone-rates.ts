@@ -1,5 +1,9 @@
-// List of lists: each element is the tuple [ *state postal code*, *rate zone*]
-const stateZonesList: Array<[string, number]> = [
+
+type State = string;
+type Zone = number;
+
+// List of lists: each element is the tuple [ *state postal abbreviation*, *rate zone*]
+const stateZonesList: Array<[State, Zone]> = [
   [ "AL", 0 ],
   // [ "AK", 2 ],
   [ "AZ", 1 ],
@@ -54,7 +58,7 @@ const stateZonesList: Array<[string, number]> = [
 ];
 
 // stateZones.get( *state postal code* ) returns *rate zone*
-const stateZones: Map<string, number> = new Map(stateZonesList);
+const stateZones: Map<State, Zone> = new Map(stateZonesList);
 
 interface ZoneRate {
   boxLot: number,
@@ -79,22 +83,41 @@ const zoneRates: Array<ZoneRate> = [
  * 
  ***************************************************/
 
-export function getBoxRate(state: string, numberOfLots: number): number {
-  return zoneRates[stateZones.get(state)].boxLot * numberOfLots;
-}
-
-export function getPalletBreakdownRate(state: string, numberOfLots: number): number {
-  return zoneRates[stateZones.get(state)].palletBreakdown * numberOfLots;
-}
-
-export function getPalletFreightRate(state: string, numberOfLots: number): number {
-  if(numberOfLots <= 0) {
-    return 0;
+export function getBoxRate(state: State, numberOfItems: number): number {
+  let zone: Zone | undefined = stateZones.get(state);
+  if(typeof zone !== 'undefined') {
+    return zoneRates[zone].boxLot * numberOfItems;
   }
+  else {
+    throw new Error(`Zone rate not found for state ${state}.`);
+  }
+}
 
-  const zone: ZoneRate = zoneRates[stateZones.get(state)];
+export function getPalletBreakdownRate(state: State, numberOfItems: number): number {
+  let zone: Zone | undefined = stateZones.get(state);
+  if(typeof zone !== 'undefined') {
+    return zoneRates[zone].palletBreakdown * numberOfItems;
+  }
+  else {
+    throw new Error(`Zone rate not found for state ${state}.`);
+  }
+}
 
-  const idx = Math.min( numberOfLots , zone.palletFreight.length ) - 1;// Don't forget the -1!
+export function getPalletFreightRate(state: State, numberOfItems: number): number {
+  let zone: Zone | undefined = stateZones.get(state);
+  if(typeof zone !== 'undefined') {
 
-  return zone.palletFreight[ idx ];
+    if(numberOfItems <= 0) {
+      return 0;
+    }
+
+    const zoneRate: ZoneRate = zoneRates[zone];
+
+    const idx = Math.min( numberOfItems , zoneRate.palletFreight.length ) - 1;// Don't forget the -1!
+
+    return zoneRate.palletFreight[ idx ];
+  }
+  else {
+    throw new Error(`Zone rate not found for state ${state}.`);
+  }
 }

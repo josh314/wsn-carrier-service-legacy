@@ -59,8 +59,8 @@ interface PalletRate {
  * *******************/
 
 const shopifyClient: shopify.Client = new shopify.Client({
-  store: process.env.SHOPIFY_STORE_NAME,
-  accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
+  store: process.env.SHOPIFY_STORE_NAME!,
+  accessToken: process.env.SHOPIFY_ACCESS_TOKEN!,
 });
 
 /**********************************************
@@ -84,8 +84,10 @@ const getTotalShippingItems = (items: Array<DressedOrderItem>): number => {
 
 const attachProductToItem = ( products: Array<shopify.Product> ) => {
   return (item: OrderItem): DressedOrderItem => {
-    const newItem: DressedOrderItem = Object.assign({}, item);
-    newItem.shopifyProduct = products.find( p => item.variant_id === p.variantId );
+    const newItem: DressedOrderItem = Object.assign(
+      { shopifyProduct: products.find( p => item.variant_id === p.variantId ) as shopify.Product },
+      item
+    );
     return newItem;
   };
 };

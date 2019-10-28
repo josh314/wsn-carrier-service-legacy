@@ -45,21 +45,21 @@ export class Product {
 
 
     try {
-      this.totalUnits = parseInt(gqlProductVariant.product.totalUnits.value as string);
+      this.totalUnits = parseInt(gqlProductVariant.product.totalUnits!.value as string);
     }
     catch(e) {
       console.log(`No totalUnits for product variant ${this.variantId}.`);
     }
 
     try {
-      this.numBoxes = parseInt(gqlProductVariant.product.numBoxes.value as string);
+      this.numBoxes = parseInt(gqlProductVariant.product.numBoxes!.value as string);
     }
     catch(e) {
       console.log(`No numBoxes for product variant ${this.variantId}.`);
     }
 
     try {
-      this.shippingItems = JSON.parse(gqlProductVariant.product.shippingItems.value);
+      this.shippingItems = JSON.parse(gqlProductVariant.product.shippingItems!.value);
     }
     catch(e) {
       console.log(`No valid shippingItems JSON for product variant ${this.variantId}.`);
@@ -181,9 +181,14 @@ const gqlQueries = {
 };
 
 const productVariantId2Gid = (pvid: number | string): string => `${pvid}`.search('gid://shopify/ProductVariant/') < 0 ? `gid://shopify/ProductVariant/${pvid}` : pvid.toString();
-const gid2ShopifyRestId = (gid: string): number | null => {
+const gid2ShopifyRestId = (gid: string): number => {
   const match = gid.match(/gid:\/\/shopify\/[a-zA-Z]+\/([0-9]+)/);
-  return match ? parseInt(match[1]) : null;
+  if(match) {
+    return parseInt(match[1]);
+  }
+  else {
+    throw new Error(`Valid Shopify REST id cannot be created from GraphQl Id ${gid}.`);
+  }
 };
 
 function arrayifyGqlMultiData(gqlMultiData: GraphQlMultiData): Array<GraphQlProductVariant> {

@@ -13,35 +13,35 @@ export interface RateRequest {
   readonly locale: string
 }
 export interface Location {
-  readonly country: string | null,
-  readonly postal_code: string | null,
-  readonly province: string | null, // note `state` since Shopify is a Canadian company
-  readonly city: string | null,
-  readonly name: string | null,
-  readonly address1: string | null,
-  readonly address2: string | null,
-  readonly address3: string | null,
-  readonly phone: string | null,
-  readonly fax: string | null,
-  readonly email: string | null,
-  readonly address_type: string | null,
-  readonly company_name: string | null
+  readonly country: string,
+  readonly postal_code: string,
+  readonly province: string, // note `state` since Shopify is a Canadian company
+  readonly city: string,
+  readonly name?: string | null,
+  readonly address1: string,
+  readonly address2?: string | null,
+  readonly address3?: string | null,
+  readonly phone?: string | null,
+  readonly fax?: string | null,
+  readonly email?: string | null,
+  readonly address_type?: string | null,
+  readonly company_name?: string | null
 }
 export interface OrderItem {
-  readonly name: string | null,
-  readonly sku: string | null,
+  readonly name?: string | null,
+  readonly sku?: string | null,
   readonly quantity: number,
   readonly grams: number,
   readonly price: number,
-  readonly vendor: string | null,
+  readonly vendor?: string | null,
   readonly requires_shipping: boolean,
   readonly taxable: boolean,
-  readonly fulfillment_service: string | null,
-  readonly properties: string | null,
+  readonly fulfillment_service?: string | null,
+  readonly properties?: string | null,
   readonly product_id: number,
   readonly variant_id: number,
 }
 
 export interface DressedOrderItem extends OrderItem {
-  shopifyProduct?: shopify.Product
+  shopifyProduct: shopify.Product
 }
