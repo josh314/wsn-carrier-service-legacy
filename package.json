@@ -5,6 +5,7 @@
   "scripts": {
     "build-client": "webpack --config webpack.config.js",
     "build-functions": "NODE_ENV=production webpack --config webpack.functions.js",
+    "build-scripts": "NODE_ENV=development webpack --config webpack.scripts.js",
     "dev-server": "webpack-dev-server --open --config webpack.config.js",
     "lambda-build": "netlify-lambda build --config webpack.functions.js src/functions",
     "lambda-serve": "netlify-lambda serve --config webpack.functions.js src/functions",
