@@ -22,7 +22,8 @@
       "aws-lambda",
       "request-promise",
       "./src",
-      "./src/lib/shopify"
+      "./src/lib/shopify",
+      "./src/lib/ups"
     ]
   }
 }
