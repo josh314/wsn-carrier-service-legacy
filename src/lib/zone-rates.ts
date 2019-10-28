@@ -82,8 +82,21 @@ const zoneRates: Array<ZoneRate> = [
  * Exported rate functions
  * 
  ***************************************************/
+const getTotalShippingItems = ( items: Array<CarrierService.DressedOrderItem> ): number => {
+  return items.reduce( (total, item): number => {
+    if( item.shopifyProduct.shippingItems && item.shopifyProduct.shippingItems.length > 0 ) {
+      return total + item.shopifyProduct.shippingItems.length * item.quantity;
+    }
+    else if( item.shopifyProduct.numBoxes ) {
+      return total + item.shopifyProduct.numBoxes * item.quantity;
+    }
+    else {
+      return total + item.quantity;
+    }
+  }, 0);
+};
 
-export function getBoxRate(state: State, numberOfItems: number): number {
+function getBoxRateForState(state: State, numberOfItems: number): number {
   let zone: Zone | undefined = stateZones.get(state);
   if(typeof zone !== 'undefined') {
     return zoneRates[zone].boxLot * numberOfItems;
@@ -93,7 +106,7 @@ export function getBoxRate(state: State, numberOfItems: number): number {
   }
 }
 
-export function getPalletBreakdownRate(state: State, numberOfItems: number): number {
+function getPalletBreakdownRate(state: State, numberOfItems: number): number {
   let zone: Zone | undefined = stateZones.get(state);
   if(typeof zone !== 'undefined') {
     return zoneRates[zone].palletBreakdown * numberOfItems;
@@ -103,7 +116,7 @@ export function getPalletBreakdownRate(state: State, numberOfItems: number): num
   }
 }
 
-export function getPalletFreightRate(state: State, numberOfItems: number): number {
+function getPalletFreightRate(state: State, numberOfItems: number): number {
   let zone: Zone | undefined = stateZones.get(state);
   if(typeof zone !== 'undefined') {
 
@@ -119,5 +132,38 @@ export function getPalletFreightRate(state: State, numberOfItems: number): numbe
   }
   else {
     throw new Error(`Zone rate not found for state ${state}.`);
+  }
+}
+
+/**********************************************************
+ * RateProvider
+ * 
+ **************/
+
+export class ZoneRateProvider implements CarrierService.RateProvider {
+  public getBoxRate( boxItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): number {
+    return getBoxRateForState( destination.province, getTotalShippingItems( boxItems ) );
+  }
+
+  public getPalletRates( palletItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Array< CarrierService.PalletRate > {
+    const palletRates: Array<CarrierService.PalletRate> = [];
+
+    if(palletItems.length > 0) {
+  
+      if(palletItems.every( i => !i.shopifyProduct.shipsByFreight() )) {
+        palletRates.push({
+          cost: getPalletBreakdownRate( destination.province , getTotalShippingItems( palletItems ) ),
+          isFreight: false
+        });
+      }
+  
+      palletRates.push({
+        cost: getPalletFreightRate( destination.province , getTotalShippingItems( palletItems ) ),
+        isFreight: true
+      });
+  
+    }
+  
+    return palletRates;
   }
 }

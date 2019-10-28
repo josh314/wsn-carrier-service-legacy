@@ -1,5 +1,5 @@
 import * as shopify from 'shopify/client';
-import * as zoneRates from 'zone-rates';
+import { ZoneRateProvider } from 'zone-rates';
 
 /*********************************************
  * Types
@@ -16,7 +16,7 @@ class Rate implements CarrierService.Rate {
   public readonly min_delivery_date?: string;
   public readonly max_delivery_date?: string;
 
-  constructor(boxRate: number, palletRate: PalletRate | null) {
+  constructor(boxRate: number, palletRate: CarrierService.PalletRate | null) {
     this.service_code = 'wholesaleninjas_shipping'; //TODO!
     this.currency = 'USD';
 
@@ -42,11 +42,6 @@ class Rate implements CarrierService.Rate {
   }
 }
 
-interface PalletRate {
-  cost: number,
-  isFreight: boolean
-}
-
 /********************************************************************
  * Initialization
  *
@@ -62,20 +57,6 @@ const shopifyClient: shopify.Client = new shopify.Client({
  * 
  * ********************************************/
 
-const getTotalShippingItems = (items: Array<CarrierService.DressedOrderItem>): number => {
-  return items.reduce( (total, item): number => {
-    if( item.shopifyProduct.shippingItems && item.shopifyProduct.shippingItems.length > 0 ) {
-      return total + item.shopifyProduct.shippingItems.length * item.quantity;
-    }
-    else if( item.shopifyProduct.numBoxes ) {
-      return total + item.shopifyProduct.numBoxes * item.quantity;
-    }
-    else {
-      return total + item.quantity;
-    }
-  }, 0);
-};
-
 const attachProductToItem = ( products: Array<Shopify.Product> ) => {
   return (item: CarrierService.OrderItem): CarrierService.DressedOrderItem => {
     const newItem: CarrierService.DressedOrderItem = Object.assign(
@@ -84,28 +65,6 @@ const attachProductToItem = ( products: Array<Shopify.Product> ) => {
     );
     return newItem;
   };
-};
-
-const getPalletRates = function(items: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact): Array<PalletRate> {
-  const palletRates: Array<PalletRate> = [];
-
-  if(items.length > 0) {
-
-    if(items.every( i => !i.shopifyProduct.shipsByFreight() )) {
-      palletRates.push({
-        cost: zoneRates.getPalletBreakdownRate( destination.province , getTotalShippingItems( items ) ),
-        isFreight: false
-      });
-    }
-
-    palletRates.push({
-      cost: zoneRates.getPalletFreightRate( destination.province , getTotalShippingItems( items ) ),
-      isFreight: true
-    });
-
-  }
-
-  return palletRates;
 };
 
 /*********************************************
@@ -130,9 +89,11 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
     // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
 
-    const palletRates: Array<PalletRate> = getPalletRates(palletItems, opts.destination);
+    const rateProvider: CarrierService.RateProvider = new ZoneRateProvider();
 
-    const boxRate = zoneRates.getBoxRate( opts.destination.province , getTotalShippingItems( boxLotItems ) );
+    const palletRates: Array< CarrierService.PalletRate > = rateProvider.getPalletRates(palletItems, opts.destination);
+
+    const boxRate: number = rateProvider.getBoxRate( boxLotItems , opts.destination );
 
     let rates: Array<Rate>;
 
