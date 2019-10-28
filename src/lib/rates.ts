@@ -1,4 +1,4 @@
-import * as shopify from 'shopify';
+import * as shopify from 'shopify/client';
 import * as zoneRates from 'zone-rates';
 
 /*********************************************
@@ -6,7 +6,7 @@ import * as zoneRates from 'zone-rates';
  * 
  * *******************/
 
-export class Rate implements CarrierService.Rate {
+class Rate implements CarrierService.Rate {
   public readonly service_name: string;
   public readonly description: string;
   public readonly service_code: string;
@@ -76,10 +76,10 @@ const getTotalShippingItems = (items: Array<CarrierService.DressedOrderItem>): n
   }, 0);
 };
 
-const attachProductToItem = ( products: Array<shopify.Product> ) => {
+const attachProductToItem = ( products: Array<Shopify.Product> ) => {
   return (item: CarrierService.OrderItem): CarrierService.DressedOrderItem => {
     const newItem: CarrierService.DressedOrderItem = Object.assign(
-      { shopifyProduct: products.find( p => item.variant_id === p.variantId ) as shopify.Product },
+      { shopifyProduct: products.find( p => item.variant_id === p.variantId ) as Shopify.Product },
       item
     );
     return newItem;
@@ -115,7 +115,7 @@ const getPalletRates = function(items: Array<CarrierService.DressedOrderItem>, d
 export async function computeRates(opts: CarrierService.ComputeRateOptions): Promise< Array<Rate> > {
   try{
     const productVariantIds: Array<number> = opts.items.map( x => x.variant_id ).filter(x=>x);
-    const products: Array<shopify.Product> = await shopifyClient.getProductData(productVariantIds);
+    const products: Array<Shopify.Product> = await shopifyClient.getProductData(productVariantIds);
 
     if(process.env.DEBUG) {
       console.log('\n');
