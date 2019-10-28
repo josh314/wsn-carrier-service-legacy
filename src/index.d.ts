@@ -63,6 +63,17 @@ export class Rate {
   public readonly max_delivery_date?: string;
 }
 
+export interface PalletRate {
+  cost: number,
+  isFreight: boolean
+}
+
+export class RateProvider {
+  public getBoxRate( boxItems: Array<DressedOrderItem>, destination: Contact ): number;
+  public getPalletRates( palletItems: Array<DressedOrderItem>, destination: Contact ): Array< PalletRate >;
+}
+
+
 export interface RateResponse {
   rates: Array<Rate>
 }
