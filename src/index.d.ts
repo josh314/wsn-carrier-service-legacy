@@ -69,8 +69,8 @@ export interface PalletRate {
 }
 
 export class RateProvider {
-  public getBoxRate( boxItems: Array<DressedOrderItem>, destination: Contact ): number;
-  public getPalletRates( palletItems: Array<DressedOrderItem>, destination: Contact ): Array< PalletRate >;
+  public getBoxRate( boxItems: Array<DressedOrderItem>, destination: Contact ): Promise<number>;
+  public getPalletRates( palletItems: Array<DressedOrderItem>, destination: Contact ): Promise< Array<PalletRate> >;
 }
 
 

@@ -91,9 +91,9 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
 
     const rateProvider: CarrierService.RateProvider = new ZoneRateProvider();
 
-    const palletRates: Array< CarrierService.PalletRate > = rateProvider.getPalletRates(palletItems, opts.destination);
+    const palletRates: Array< CarrierService.PalletRate > = await rateProvider.getPalletRates(palletItems, opts.destination);
 
-    const boxRate: number = rateProvider.getBoxRate( boxLotItems , opts.destination );
+    const boxRate: number = await rateProvider.getBoxRate( boxLotItems , opts.destination );
 
     let rates: Array<Rate>;
 
