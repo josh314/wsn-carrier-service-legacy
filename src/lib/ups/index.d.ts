@@ -52,22 +52,25 @@ export interface Weight {
   Weight: string 
 }
 
+export enum ServiceCodeEnum {
+  NEXT_DAY_AIR = "01",
+  TWO_DAY_AIR = "02",
+  GROUND = "03",
+  THREE_DAY_SELECT = "12",
+  NEXT_DAY_AIR_SAVER = "13",
+  UPS_NEXT_DAY_AIR_EARLY = "14",
+  TWO_DAY_AIR_AM_VALID_INTERNATIONAL_VALUES = "59",
+  WORLDWIDE_EXPRESS = "07",
+  WORLDWIDE_EXPEDITED = "08",
+  STANDARD = "11",
+  WORLDWIDE_EXPRESS_PLUS = "54",
+  SAVER = "65",
+  UPS_WORLDWIDE_EXPRESS_FREIGHT = "96",
+  UPS_WORLDWIDE_EXPRESS_FREIGHT_MIDDAY = "71" // Required for Rating and ignored for Shopping.
+}
+
 export interface Service {
-  Code: 
-    "01" | /* Next Day Air */
-    "02" | /* 2nd Day Air */
-    "03" | /* Ground */
-    "12" | /* 3 Day Select */
-    "13" | /* Next Day Air Saver */
-    "14" | /* UPS Next Day Air Early */
-    "59" | /* 2nd Day Air A.M. Valid international values: */
-    "07" | /* Worldwide Express */
-    "08" | /* Worldwide Expedited*/
-    "11" | /* Standard */
-    "54" | /* Worldwide Express Plus */
-    "65" | /* Saver */
-    "96" | /* UPS Worldwide Express Freight */
-    "71"  /* UPS Worldwide Express Freight Midday Required for Rating and ignored for Shopping.*/
+  Code: ServiceCodeEnum,
   Description?: string
 }
 
@@ -76,21 +79,24 @@ export interface Service {
  *
  * ***/
 
+ //For FRS rating requests the only valid value is customer supplied packaging “02”.
+export enum PackagingTypeCodeEnum {
+  UNKNOWN = "00",
+  UPS_LETTER = "01",
+  PACKAGE = "02",
+  TUBE = "03",
+  PAK = "04",
+  EXPRESS_BOX = "21",
+  TWENTY_FIVE_KG_BOX = "24",
+  TEN_KG_BOX = "25",
+  PALLET = "30",
+  SMALL_EXPRESS_BOX = "2a",
+  MEDIUM_EXPRESS_BOX = "2b",
+  LARGE_EXPRESS_BOX = "2c"
+}
+
 export interface PackagingType {
-  Code: 
-    "00" | /* UNKNOWN  */
-    "01" | /* UPS Letter  */
-    "02" | /* Package  */
-    "03" | /* Tube  */
-    "04" | /* Pak  */
-    "21" | /* Express Box  */
-    "24" | /* 25KG Box  */
-    "25" | /* 10KG Box  */
-    "30" | /* Pallet  */
-    "2a" | /* Small Express Box  */
-    "2b" | /* Medium Express Box  */
-    "2c"   /* Large Express Box */
-  //For FRS rating requests the only valid value is customer supplied packaging “02”.
+  Code: PackagingTypeCodeEnum
 }
 
 export interface Package {
@@ -134,23 +140,29 @@ export interface Shipment  {
   ShipmentRatingOptions?: ShipmentRatingOptions
 }
 
+export enum CustomerClassificationCodeEnum {
+  NEGOTIATED_RATES = "00", /* Rates Associated with Shipper Number" */
+  DAILY_RATES = "01",
+  RETAIL_RATES = "04",
+  REGIONAL_RATES = "05",
+  GENERAL_LIST_RATES = "06",
+  STANDARD_LIST_RATES = "53",
+}
+
 export interface CustomerClassification {
-  Code: 
-    "00" | /* Rates Associated with Shipper Number" */
-    "01" | /* Daily Rates */
-    "04" | /* Retail Rates */ 
-    "05" | /* Regional Rates */
-    "06" | /* General List Rates */
-    "53"  /* Standard List Rates */
+  Code: CustomerClassificationCodeEnum
+}
+
+export enum PickupTypeCodeEnum {
+  DAILY_PICKUP = "01", /* Default: used when an invalid pickup type code is provided */
+  CUSTOMER_COUNTER = "03",
+  ONE_TIME_PICKUP = "06",
+  LETTER_CENTER = "19",
+  AIR_SERVICE_CENTER = "20",
 }
 
 export interface PickupType {
-  Code: 
-    "01" | /* Daily Pickup (Default: used when an invalid pickup type code is provided) */
-    "03" | /* Customer Counter */
-    "06" | /* One Time Pickup */
-    "19" | /* Letter Center */
-    "20"   /* Air Service Center*/
+  Code: PickupTypeCodeEnum
 }
 
 /**********************************************

@@ -1,4 +1,5 @@
-import { Client } from '../lib/ups/client';
+import { Client } from 'ups/client';
+import * as UPS from 'ups'
 
 const settings = require('../../settings');
 
@@ -9,7 +10,7 @@ const password = settings.ups.password;
 const client = new Client(settings.ups);
 
 const packagingType: UPS.PackagingType = {
-  Code: "02",
+  Code: UPS.PackagingTypeCodeEnum.PACKAGE,
 };
 
 const weight: UPS.Weight = {
@@ -72,7 +73,7 @@ const shipper: UPS.Shipper = Object.assign(
 );
 
 const service: UPS.Service = {
-  Code: "03",
+  Code: UPS.ServiceCodeEnum.GROUND
 };
 
 const shipment: UPS.Shipment = {
