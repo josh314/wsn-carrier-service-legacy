@@ -26,7 +26,7 @@ export class Client implements UPS.ApiClient {
     this.baseUrl = process.env.NODE_ENV === 'development' ? 'https://wwwcie.ups.com/rest' : 'https://onlinetools.ups.com/rest';
   }
 
-  public async request(endpoint: Endpoint, body: UPS.ApiRequestBody): Promise<UPS.ApiResponse> {
+  public async request(endpoint: Endpoint, body: UPS.ApiRequestBody): Promise<UPS.ApiResponseContainer> {
     if(process.env.DEBUG) {
       console.log('Api Request:');
       console.log( JSON.stringify(body, null, 2) );
@@ -44,7 +44,7 @@ export class Client implements UPS.ApiClient {
       body: body,
       json: true,
     };
-    const apiResp = await rp(req);
+    const apiResp: UPS.ApiResponseContainer = await rp(req);
 
 
     if(process.env.DEBUG) {
@@ -60,9 +60,22 @@ export class Client implements UPS.ApiClient {
     return apiResp;
   }
 
-  public ratingRequest(request: UPS.Rating.RateRequest): UPS.Rating.Response {
+  public async ratingRequest(rateRequest: UPS.Rating.RateRequest): Promise<UPS.Rating.RateResponse> {
 
-    const resp: UPS.Rating.Response = {};
-    return resp;
+    const rateRequestBody: UPS.Rating.RateRequestBody = {
+      UPSSecurity: {
+        UsernameToken: {
+          Username: this.user,
+          Password: this.password
+        },
+        ServiceAccessToken: {
+          AccessLicenseNumber: this.accessLicenseNumber
+        }
+      },
+      RateRequest: rateRequest
+    };
+
+    const resp: UPS.ApiResponseContainer = await this.request('Rate', rateRequestBody);
+    return (resp as UPS.Rating.RateResponseContainer).RateResponse;
   }
 }

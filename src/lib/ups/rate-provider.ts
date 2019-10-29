@@ -14,10 +14,10 @@ export class UpsRateProvider implements CarrierService.RateProvider {
     });
   }
 
-  public getBoxRate( boxItems: Array< CarrierService.DressedOrderItem >, destination: CarrierService.Contact ): number {
+  public async getBoxRate( boxItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise<number> {
     return 0;
   }
-  public getPalletRates( palletItems: Array< CarrierService.DressedOrderItem >, destination: CarrierService.Contact ): Array< CarrierService.PalletRate > {
+  public async getPalletRates( palletItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
     return [];
   }
 }

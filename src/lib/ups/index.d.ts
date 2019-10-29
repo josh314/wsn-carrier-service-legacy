@@ -159,7 +159,7 @@ export interface PickupType {
  * **********/
 
 export class ApiClient {
-  public ratingRequest(request: Rating.RateRequest): Rating.Response;
+  public ratingRequest(request: Rating.RateRequest): Promise<Rating.RateResponse>
 }
 
 /*************** Rating ****************/
@@ -186,7 +186,11 @@ declare namespace Rating {
   }
 
   //TODO
-  export type Response = {};
+  export interface RateResponse {}
+
+  export interface RateResponseContainer {
+    RateResponse: RateResponse
+  }
 }
 
 declare namespace AV {
@@ -217,12 +221,29 @@ declare namespace AV {
 
   //TODO
   export interface AddressValidationResponse {
-    Response: {},
-    AddressValidationResult?: {}
+    Response: {
+      TransactionReference: string,
+      ResponseStatusCode: string,
+      ResponseStatusDescription: string,
+    },
+    AddressValidationResult?: {
+      Rank: string,
+      Quality: string,
+      Address: {
+        City: string,
+        StateProvinceCode: string,
+      },
+      PostalCodeLowEnd: string,
+      PostalCodeHighEnd: string
+    }
+  }
+
+  export interface AddressValidationResponseContainer {
+    AddressValidationResponse: AddressValidationResponse
   }
 }
 
 type ApiRequestBody = Rating.RateRequestBody | AV.AddressValidationRequestBody;
-type ApiResponse = Rating.Response | AV.AddressValidationResponse;
+type ApiResponseContainer = Rating.RateResponseContainer | AV.AddressValidationResponseContainer;
 
 export as namespace UPS;
