@@ -5,8 +5,10 @@ const Dotenv = require('dotenv-webpack');
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
 
 const funcDir = path.join(__dirname, 'src', 'functions');
-const functions = fs.readdirSync(funcDir).map(f => f.match(/(.*)\.(js|ts)$/)[1] ).reduce((obj, f)=>{
-  obj[f] = path.join(funcDir, f);
+const functions = fs.readdirSync(funcDir).map(f => { const match = f.match(/(.*)\.(js|ts)$/); return match ? match[1] : null; }).reduce((obj, f)=>{
+  if(f) {
+    obj[f] = path.join(funcDir, f);
+  }
   return obj;
 }, {});
 
