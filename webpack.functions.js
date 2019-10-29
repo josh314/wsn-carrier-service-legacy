@@ -29,7 +29,7 @@ const opts = {
   entry: functions,
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, 'functions'),
+    path: path.join(__dirname, 'build', 'functions'),
   },
   module: {
     rules: [
