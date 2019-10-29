@@ -1,4 +1,3 @@
-
 import { Client } from "ups/client";
 
 export class UpsRateProvider implements CarrierService.RateProvider {
