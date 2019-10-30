@@ -3,52 +3,79 @@ import { Client, PackagingTypeCodeEnum, ServiceCodeEnum } from 'ups/client';
 
 const settings = require('../../settings');
 
-const accessLicenseNumber: UPS.AccessLicenseNumber = settings.ups.accessLicenseNumber;
-const user = settings.ups.user;
-const password = settings.ups.password;
-
 const client = new Client(settings.ups);
 
 const packagingType: UPS.PackagingType = {
   Code: PackagingTypeCodeEnum.PACKAGE,
 };
 
-const weight: UPS.Weight = {
-  UnitOfMeasurement: {
-    Code: "LBS",
-    // Description: "pounds"
+const pkgs: Array<UPS.Package> = [
+  {
+    PackagingType: packagingType,
+    Dimensions: {
+      UnitOfMeasurement: {
+        Code: "IN",
+        Description: "inches"
+      },
+      Height: "22",
+      Length: "22",
+      Width: "22",
+    },
+    PackageWeight: {
+      UnitOfMeasurement: {
+        Code: "LBS",
+        // Description: "pounds"
+      },
+      Weight: "20.0"
+    }
   },
-  Weight: "20.0"
-};
-
-const dimensions: UPS.Dimensions = {
-  UnitOfMeasurement: {
-    Code: "IN",
-    Description: "inches"
+  {
+    PackagingType: packagingType,
+    Dimensions: {
+      UnitOfMeasurement: {
+        Code: "IN",
+        Description: "inches"
+      },
+      Height: "16",
+      Length: "14",
+      Width: "12",
+    },
+    PackageWeight: {
+      UnitOfMeasurement: {
+        Code: "LBS",
+        // Description: "pounds"
+      },
+      Weight: "1"
+    }
   },
-  Height: "18",
-  Length: "18",
-  Width: "18",
-};
+  {
+    PackagingType: packagingType,
+    Dimensions: {
+      UnitOfMeasurement: {
+        Code: "IN",
+        Description: "inches"
+      },
+      Height: "12",
+      Length: "10",
+      Width: "6",
+    },
+    PackageWeight: {
+      UnitOfMeasurement: {
+        Code: "LBS",
+        // Description: "pounds"
+      },
+      Weight: "1"
+    }
+  },
+];
 
-const pkg: UPS.Package = {
-  PackagingType: packagingType,
-  Dimensions: dimensions,
-  PackageWeight: weight
-};
-
-const homeAddress: UPS.Address = {
+const destinationAddress: UPS.Address = {
   AddressLine: [ "308 Dallam Rd" ],
   City: "Newark",
   StateProvinceCode: "DE",
   PostalCode: "19711",
   CountryCode: "US"
 };
-
-const shipTo: UPS.ShippingLocation = {
-  Name: "Josh Dawg",
-  Address: homeAddress
-}
 
 const warehouseAddress: UPS.Address = {
   AddressLine: [
@@ -63,7 +90,7 @@ const warehouseAddress: UPS.Address = {
 const shipFrom: UPS.ShippingLocation = {
   Name: "Wholesale Ninjas",
   Address: warehouseAddress,
-}
+};
 
 const shipper: UPS.Shipper = Object.assign(
   shipFrom, 
@@ -77,10 +104,10 @@ const service: UPS.Service = {
 };
 
 const shipment: UPS.Shipment = {
-  Package: [ pkg, pkg ],
+  Package: pkgs,
   ShipTo: {
     Name: "Josh Dawg",
-    Address: homeAddress,
+    Address: destinationAddress,
   },
   ShipFrom: {
     Name: "Wholesale Ninjas",
@@ -96,7 +123,6 @@ const body: UPS.Rating.RateRequest = {
     RequestOption: "Rate",
   },
   Shipment: shipment
-  // ShipmentRatingOptions: ShipmentRatingOptions,
 };
 
 client.ratingRequest(body)
