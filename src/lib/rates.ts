@@ -1,5 +1,6 @@
 import * as shopify from 'shopify/client';
 import { ZoneRateProvider } from 'zone-rates';
+import { UpsRateProvider } from 'ups/rate-provider';
 
 /*********************************************
  * Types
@@ -90,6 +91,8 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
 
     const rateProvider: CarrierService.RateProvider = new ZoneRateProvider();
+    const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider();
+
 
     const palletRates: Array< CarrierService.PalletRate > = await rateProvider.getPalletRates(palletItems, opts.destination);
 

@@ -1,4 +1,88 @@
-import { Client } from "ups/client";
+import { Client, ServiceCodeEnum, PackagingTypeCodeEnum } from "ups/client";
+
+const WAREHOUSE: UPS.Address = {
+  AddressLine: [
+    "124 Greenmount Rd",
+  ],
+  City: "Rising Sun",
+  StateProvinceCode: "MD",
+  PostalCode: "21911",
+  CountryCode: "US"
+};
+
+const WHOLESALE_NINJAS: UPS.Shipper = {
+  Name: "Wholesale Ninjas",
+  Address: WAREHOUSE,
+};
+
+export const buildRateRequest = (packages: Array<UPS.Package>, contact: CarrierService.Contact): UPS.Rating.RateRequest => ({
+  Request: {
+    RequestOption: 'Rate'
+  },
+  Shipment: {
+    Package: packages,
+    ShipTo: {
+      Name: contact.name || '',
+      Address: {
+        AddressLine: [contact.address1, contact.address2 as string, contact.address3 as string].filter( x => x ),
+        City: contact.city,
+        StateProvinceCode: contact.province,
+        PostalCode: contact.postal_code,
+        CountryCode: "US"
+      }
+    },
+    ShipFrom: WHOLESALE_NINJAS,
+    Shipper: WHOLESALE_NINJAS,
+    Service: {
+      Code: ServiceCodeEnum.GROUND
+    }
+  }
+});
+
+const getPackageWeight = (shippingItem: Shopify.ShippingItem): UPS.Weight => {
+  let factors: Map<Shopify.WeightUnits, number> = new Map([
+    [ 'pounds', 1 ],
+    [ 'ounces', 1/16 ],
+    [ 'grams', 0.0022 ],
+    [ 'kilograms', 2.2 ],
+  ]);
+  let factor: number = factors.get(shippingItem.weightUnits) as number;
+  return {
+    UnitOfMeasurement: {
+      Code: "LBS",
+    },
+    Weight: (factor*shippingItem.weight).toString(2)
+  };
+};
+
+const getPackageDimensions = (shippingItem: Shopify.ShippingItem): UPS.Dimensions => {
+  let factors: Map<Shopify.DimensionUnits, number> = new Map([
+    [ 'inches', 1 ],
+    [ 'feet', 12 ],
+    [ 'centimeters', 0.394 ]
+  ]);
+  return {
+    UnitOfMeasurement: {
+      Code: 'IN'
+    },
+    Height: ( (factors.get(shippingItem.heightUnits) as number) * shippingItem.height ).toString(2),
+    Length: ( (factors.get(shippingItem.lengthUnits) as number) * shippingItem.length ).toString(2),
+    Width: ( (factors.get(shippingItem.widthUnits) as number) * shippingItem.width ).toString(2)
+  };
+};
+
+export const packageFromOrderItemShippingItem = (shippingItem: Shopify.ShippingItem): UPS.Package => {
+  const pkg: UPS.Package = {
+    PackagingType: {
+      Code: PackagingTypeCodeEnum.PACKAGE
+    },
+    Dimensions: getPackageDimensions(shippingItem),
+    PackageWeight: getPackageWeight(shippingItem),
+  };
+
+  return pkg;
+};
+
 
 export class UpsRateProvider implements CarrierService.RateProvider {
 
@@ -14,7 +98,14 @@ export class UpsRateProvider implements CarrierService.RateProvider {
   }
 
   public async getBoxRate( boxItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise<number> {
-    return 0;
+    // TODO: what if no shopifyProduct or shopifyProduct.shippingItems ?
+    const packages: Array<UPS.Package> = boxItems.map( orderItem => orderItem.shopifyProduct.shippingItems ).flat().map(packageFromOrderItemShippingItem);
+
+    const rateRequest = buildRateRequest(packages, destination);
+
+    const rateResponse: UPS.Rating.RateResponse = await this.client.ratingRequest(rateRequest);
+
+    return parseFloat(rateResponse.RatedShipment.TotalCharges.MonetaryValue);
   }
   public async getPalletRates( palletItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
     return [];
