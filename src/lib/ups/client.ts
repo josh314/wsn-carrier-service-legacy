@@ -127,6 +127,8 @@ export class Client implements UPS.ApiClient {
 
   public async ratingRequest(rateRequest: UPS.Rating.RateRequest): Promise<UPS.Rating.RateResponse> {
 
+    rateRequest.Shipment.Shipper.ShipperNumber = this.accountNumber;
+
     const rateRequestBody: UPS.Rating.RateRequestBody = {
       UPSSecurity: {
         UsernameToken: {
