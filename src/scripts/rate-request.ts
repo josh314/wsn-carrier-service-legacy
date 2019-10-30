@@ -1,5 +1,5 @@
-import { Client } from 'ups/client';
-import * as UPS from 'ups'
+import { Client, PackagingTypeCodeEnum, ServiceCodeEnum } from 'ups/client';
+
 
 const settings = require('../../settings');
 
@@ -10,7 +10,7 @@ const password = settings.ups.password;
 const client = new Client(settings.ups);
 
 const packagingType: UPS.PackagingType = {
-  Code: UPS.PackagingTypeCodeEnum.PACKAGE,
+  Code: PackagingTypeCodeEnum.PACKAGE,
 };
 
 const weight: UPS.Weight = {
@@ -18,7 +18,7 @@ const weight: UPS.Weight = {
     Code: "LBS",
     // Description: "pounds"
   },
-  Weight: "20"
+  Weight: "20.0"
 };
 
 const dimensions: UPS.Dimensions = {
@@ -26,9 +26,9 @@ const dimensions: UPS.Dimensions = {
     Code: "IN",
     Description: "inches"
   },
-  Height: "24",
-  Length: "24",
-  Width: "24",
+  Height: "18",
+  Length: "18",
+  Width: "18",
 };
 
 const pkg: UPS.Package = {
@@ -73,11 +73,11 @@ const shipper: UPS.Shipper = Object.assign(
 );
 
 const service: UPS.Service = {
-  Code: UPS.ServiceCodeEnum.GROUND
+  Code: ServiceCodeEnum.GROUND
 };
 
 const shipment: UPS.Shipment = {
-  Package: pkg,
+  Package: [ pkg, pkg ],
   ShipTo: {
     Name: "Josh Dawg",
     Address: homeAddress,
