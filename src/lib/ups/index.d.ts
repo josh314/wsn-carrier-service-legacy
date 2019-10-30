@@ -102,7 +102,7 @@ export interface LengthUnits {
 
 export interface WeightUnits {
   Code: "KGS" | "LBS",
-  Description?: "kilograms" | "pounds"
+  Description?: "kilograms" | "pounds" | "Kilograms" | "Pounds"
 }
 
 export interface Dimensions {
@@ -212,8 +212,39 @@ declare namespace Rating {
     RateRequest: RateRequest,
   }
 
+  export interface Charge {
+    CurrencyCode: string, // "USD"
+    MonetaryValue: string
+  }
+
+  export interface RatedPackage {
+    TransportationCharges: Charge,
+    ServiceOptionsCharges: Charge,
+    TotalCharges: Charge,
+    Weight: string,
+    BillingWeight: Weight
+  }
+
   //TODO
-  export interface RateResponse {}
+  export interface RateResponse {
+    Response: {
+      ResponseStatus: {
+        Code: string,
+        Description: string
+      },
+      Alert: Array<{ "Code": string, "Description": string}>,
+      TransactionReference: string
+    },
+    RatedShipment: {
+      Service: Service,
+      RatedShipmentAlert: Array<{ Code: string, Description: string }>,
+      BillingWeight: Weight,
+      TransportationCharges: Weight,
+      ServiceOptionsCharges: Weight,
+      TotalCharges: Charge,
+      RatedPackage: Array<RatedPackage>
+    }
+  }
 
   export interface RateResponseContainer {
     RateResponse: RateResponse
