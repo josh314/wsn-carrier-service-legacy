@@ -58,15 +58,26 @@ interface GraphQlProductVariant {
   product: GraphQlProduct
 }
 
+export type DimensionUnits =
+  'feet' | /* TODO: not valid  in Shipstation */
+  'inches' |
+  'centimeters';
+
+export type WeightUnits =
+  'pounds' |
+  'ounces' |
+  'grams' |
+  'kilograms';
+
 interface ShippingItem {
   weight: number,
-  weightUnits: string,
+  weightUnits: WeightUnits,
   height: number,
-  heightUnits: string,
+  heightUnits: DimensionUnits,
   length: number,
-  lengthUnits: string,
+  lengthUnits: DimensionUnits,
   width: number,
-  widthUnits: string,
+  widthUnits: DimensionUnits,
 }
 
 export class Product {
