@@ -160,7 +160,19 @@ export type Shipper = ShippingLocation & { ShipperNumber?: AccountNumber }
 
 
 export interface ShipmentRatingOptions {
-  NegotiatedRatesIndicator?: string
+  NegotiatedRatesIndicator?: string, // TODO
+  FRSShipmentIndicator?: string, // TODO
+  RateChartIndicator?: string
+}
+
+export interface FRSPaymentInformation {
+  Type:{
+    Code: 
+      "01" | //Prepaid
+      "02" | //FreightCollect
+      "03"  //BillThirdParty
+  },
+  AccountNumber: string,
 }
 
 export interface Shipment  {
@@ -169,7 +181,8 @@ export interface Shipment  {
   ShipFrom: ShippingLocation,
   Service?: Service,
   Package: Array<Package> | Package ,
-  ShipmentRatingOptions?: ShipmentRatingOptions
+  ShipmentRatingOptions?: ShipmentRatingOptions,
+  FRSPaymentInformation?: FRSPaymentInformation
 }
 
 export interface CustomerClassification {
@@ -228,16 +241,17 @@ declare namespace Rating {
   //TODO
   export interface RateResponse {
     Response: {
-      ResponseStatus: {
-        Code: string,
-        Description: string
+      ResponseStatus: { //TODO
+        Code: string, // 1 = Successful
+        Description: string // Success for valid
       },
-      Alert: Array<{ "Code": string, "Description": string}>,
-      TransactionReference: string
+      Alert?: Array<{ "Code": string /* TODO: enum */, "Description": string}>,
+      AlertDetail?: any, // IGNORE
+      TransactionReference: string //TODO
     },
     RatedShipment: {
       Service: Service,
-      RatedShipmentAlert: Array<{ Code: string, Description: string }>,
+      RatedShipmentAlert: Array<{ Code: string  /* TODO: enum */, Description: string }>,
       BillingWeight: Weight,
       TransportationCharges: Weight,
       ServiceOptionsCharges: Weight,
