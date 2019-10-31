@@ -21,32 +21,68 @@ const WHOLESALE_NINJAS: UPS.Shipper = {
   Address: WAREHOUSE,
 };
 
-export const buildRateRequest = (packages: Array<UPS.Package>, contact: CarrierService.Contact): UPS.Rating.RateRequest => ({
-  Request: {
-    RequestOption: 'Rate'
-  },
-  CustomerClassification: {
-    Code: CustomerClassificationCodeEnum.NEGOTIATED_RATES
-  },
-  Shipment: {
-    Package: packages,
-    ShipTo: {
-      Name: contact.name || '',
-      Address: {
-        AddressLine: [contact.address1, contact.address2 as string, contact.address3 as string].filter( x => x ),
-        City: contact.city,
-        StateProvinceCode: contact.province,
-        PostalCode: contact.postal_code,
-        CountryCode: "US"
-      }
+interface RateOptions {
+  negotiatedRates?: boolean,
+  gfpRates?: boolean
+}
+
+export const buildRateRequest = (packages: Array<UPS.Package>, contact: CarrierService.Contact, options: RateOptions = {}): UPS.Rating.RateRequest => {
+
+  const rateRequest: UPS.Rating.RateRequest = {
+    Request: {
+      RequestOption: 'Rate'
     },
-    ShipFrom: WHOLESALE_NINJAS,
-    Shipper: WHOLESALE_NINJAS,
-    Service: {
-      Code: ServiceCodeEnum.GROUND
-    }
+    PickupType: {
+      Code: PickupTypeCodeEnum.DAILY_PICKUP
+    },
+    Shipment: {
+      Package: packages,
+      ShipTo: {
+        Name: contact.name || '',
+        Address: {
+          AddressLine: [contact.address1, contact.address2 as string, contact.address3 as string].filter( x => x ),
+          City: contact.city,
+          StateProvinceCode: contact.province,
+          PostalCode: contact.postal_code,
+          CountryCode: "US"
+        }
+      },
+      ShipFrom: WHOLESALE_NINJAS,
+      Shipper: WHOLESALE_NINJAS,
+      Service: {
+        Code: ServiceCodeEnum.GROUND
+      },
+      ShipmentRatingOptions: {
+        RateChartIndicator: "1"
+      },
+    },
+  };
+
+  if(options.negotiatedRates) {
+    rateRequest.CustomerClassification = {
+      Code: CustomerClassificationCodeEnum.NEGOTIATED_RATES,
+    };
+    rateRequest.Shipment.ShipmentRatingOptions.NegotiatedRatesIndicator = "1";
+
+    Object.assign(rateRequest.Shipment.Shipper, { ShipperNumber: process.env.UPS_ACCOUNT_NUMBER! })
   }
-});
+
+  if(options.gfpRates) {
+    rateRequest.Shipment.ShipmentRatingOptions.FRSShipmentIndicator = "1";
+    rateRequest.Shipment.FRSPaymentInformation = {
+      Type: {
+        Code: "01",
+      },
+      AccountNumber: process.env.UPS_ACCOUNT_NUMBER!,
+      Address: {
+        PostalCode: WHOLESALE_NINJAS.Address.PostalCode,
+        CountryCode: WHOLESALE_NINJAS.Address.CountryCode
+      }
+    };
+  }
+
+  return rateRequest;
+};
 
 const getPackageWeight = (shippingItem: Shopify.ShippingItem): UPS.Weight => {
   let factors: Map<Shopify.WeightUnits, number> = new Map([
