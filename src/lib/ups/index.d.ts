@@ -64,13 +64,14 @@ type PickupTypeCodeEnum =
   "20"   // AIR_SERVICE_CENTER
 ;
 
-
 // There are many possible alert codes. Only recording ones we might actual use in our logic
 type AlertCodeEnum =
   "110920" | // When user indicated Residential indicator is different from AMS Classification.
   "112153" | // Unregistered User
   "112154" | // FBR688: FULL RATES RETURNED. CUSTOMER COULD NOT BE FOUND FOR THAT ZIP CODE."
-  "112155"
+  "112155" | // Destination is a rural point
+  "119084" | // Missing / Invalid Shipper Number. Returned rates are Retail Rates.
+  "120902"   // Negotiated rates cannot be returned without a valid account number
 ;
 
 /*************************************************
@@ -211,7 +212,7 @@ export interface Shipment  {
   ShipFrom: ShippingLocation,
   Service?: Service,
   Package: Array<Package> | Package ,
-  ShipmentRatingOptions?: ShipmentRatingOptions,
+  ShipmentRatingOptions: ShipmentRatingOptions,
   FRSPaymentInformation?: FRSPaymentInformation
 }
 
