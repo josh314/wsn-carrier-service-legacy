@@ -1,4 +1,10 @@
-import { Client, ServiceCodeEnum, PackagingTypeCodeEnum } from "ups/client";
+import {
+  Client,
+  ServiceCodeEnum,
+  PackagingTypeCodeEnum,
+  CustomerClassificationCodeEnum,
+  PickupTypeCodeEnum
+} from "ups/client";
 
 const WAREHOUSE: UPS.Address = {
   AddressLine: [
@@ -18,6 +24,9 @@ const WHOLESALE_NINJAS: UPS.Shipper = {
 export const buildRateRequest = (packages: Array<UPS.Package>, contact: CarrierService.Contact): UPS.Rating.RateRequest => ({
   Request: {
     RequestOption: 'Rate'
+  },
+  CustomerClassification: {
+    Code: CustomerClassificationCodeEnum.NEGOTIATED_RATES
   },
   Shipment: {
     Package: packages,

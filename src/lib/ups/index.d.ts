@@ -64,6 +64,12 @@ type PickupTypeCodeEnum =
   "20"   // AIR_SERVICE_CENTER
 ;
 
+
+// There are many possible alert codes. Only recording ones we might actual use in our logic
+type AlertCodeEnum =
+  "110920" // When user indicated Residential indicator is different from AMS Classification.
+
+
 /*************************************************
  * API Authentication & Access
  *
@@ -159,10 +165,16 @@ export interface ShippingLocation {
 export type Shipper = ShippingLocation & { ShipperNumber?: AccountNumber }
 
 
+// The actual string values for these indicators don't seem to matter
+export type NegotiatedRatesIndicator = "1" | undefined;
+export type FRSShipmentIndicator = "1" | undefined;
+export type RateChartIndicator = "1" | undefined;
+
+
 export interface ShipmentRatingOptions {
-  NegotiatedRatesIndicator?: string, // TODO
-  FRSShipmentIndicator?: string, // TODO
-  RateChartIndicator?: string
+  NegotiatedRatesIndicator?: NegotiatedRatesIndicator,
+  FRSShipmentIndicator?: FRSShipmentIndicator,
+  RateChartIndicator?: RateChartIndicator
 }
 
 export interface FRSPaymentInformation {
@@ -238,6 +250,12 @@ declare namespace Rating {
     BillingWeight: Weight
   }
 
+  export type RateChartEnum =
+    "1" | // Daily Rates
+    "3" | // Standard List Rates
+    "4"   // Retail Rates
+  ;
+
   //TODO
   export interface RateResponse {
     Response: {
@@ -245,17 +263,19 @@ declare namespace Rating {
         Code: string, // 1 = Successful
         Description: string // Success for valid
       },
-      Alert?: Array<{ "Code": string /* TODO: enum */, "Description": string}>,
+      Alert?: Array<{ "Code": AlertCodeEnum , "Description": string}>,
       AlertDetail?: any, // IGNORE
       TransactionReference: string //TODO
     },
     RatedShipment: {
+      RateChart: RateChartEnum,
       Service: Service,
-      RatedShipmentAlert: Array<{ Code: string  /* TODO: enum */, Description: string }>,
+      RatedShipmentAlert: Array<{ Code: AlertCodeEnum  , Description: string }>,
       BillingWeight: Weight,
       TransportationCharges: Weight,
       ServiceOptionsCharges: Weight,
       TotalCharges: Charge,
+      NegotiatedRateCharges: Charge,
       RatedPackage: Array<RatedPackage>
     }
   }
