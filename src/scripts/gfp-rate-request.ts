@@ -1,73 +1,54 @@
-import { Client, PackagingTypeCodeEnum, ServiceCodeEnum } from 'ups/client';
+import {
+  Client,
+  PackagingTypeCodeEnum,
+  ServiceCodeEnum,
+  PickupTypeCodeEnum,
+  CustomerClassificationCodeEnum
+} from 'ups/client';
 
+
+const args = require('minimist')(process.argv.slice(2), { alias: { "development": ["dev", "d"] } });
 
 const settings = require('../../settings');
 
-const client = new Client(settings.ups);
+const clientSettings = Object.assign(
+  { development: args.development },
+  settings.ups
+);
+
+const client = new Client( clientSettings );
 
 const packagingType: UPS.PackagingType = {
   Code: PackagingTypeCodeEnum.PACKAGE,
 };
 
-const pkgs: Array<UPS.Package> = [
-  {
-    PackagingType: packagingType,
-    Dimensions: {
-      UnitOfMeasurement: {
-        Code: "IN",
-        Description: "inches"
-      },
-      Height: "22",
-      Length: "22",
-      Width: "22",
+const pkg: UPS.Package = {
+  PackagingType: packagingType,
+  Dimensions: {
+    UnitOfMeasurement: {
+      Code: "IN",
+      Description: "inches"
     },
-    PackageWeight: {
-      UnitOfMeasurement: {
-        Code: "LBS",
-        // Description: "pounds"
-      },
-      Weight: "20.0"
-    }
+    Height: "22",
+    Length: "22",
+    Width: "22",
   },
-  {
-    PackagingType: packagingType,
-    Dimensions: {
-      UnitOfMeasurement: {
-        Code: "IN",
-        Description: "inches"
-      },
-      Height: "16",
-      Length: "14",
-      Width: "12",
+  PackageWeight: {
+    UnitOfMeasurement: {
+      Code: "LBS",
+      // Description: "pounds"
     },
-    PackageWeight: {
-      UnitOfMeasurement: {
-        Code: "LBS",
-        // Description: "pounds"
-      },
-      Weight: "1"
-    }
+    Weight: "50.0"
   },
-  {
-    PackagingType: packagingType,
-    Dimensions: {
-      UnitOfMeasurement: {
-        Code: "IN",
-        Description: "inches"
-      },
-      Height: "12",
-      Length: "10",
-      Width: "6",
-    },
-    PackageWeight: {
-      UnitOfMeasurement: {
-        Code: "LBS",
-        // Description: "pounds"
-      },
-      Weight: "1"
-    }
-  },
-];
+  Commodity: {
+    FreightClass: "60"
+  }
+};
+
+const pkgs: Array<UPS.Package> = [];
+for(let i=0; i<8; i++) {
+  pkgs.push(pkg);
+}
 
 const destinationAddress: UPS.Address = {
   AddressLine: [ "308 Dallam Rd" ],
@@ -116,14 +97,19 @@ const shipment: UPS.Shipment = {
   Shipper: shipper,
   Service: service,
   ShipmentRatingOptions: {
-    FRSShipmentIndicator: "1"
+    FRSShipmentIndicator: "1",
+    NegotiatedRatesIndicator: "1",
+    RateChartIndicator: "1"
   },
   FRSPaymentInformation: {
     Type: {
-      Code: "01"
+      Code: "02"
     },
-    AccountNumber: settings.accountNumber
-    
+    AccountNumber: settings.accountNumber,
+    Address: {
+      PostalCode: "21911",
+      CountryCode: "US"
+    }
   }
 };
 
@@ -131,6 +117,13 @@ const body: UPS.Rating.RateRequest = {
   Request: {
     // RequestAction: "Rate",
     RequestOption: "Rate",
+    SubVersion: "1801"
+  },
+  PickupType: {
+    Code: PickupTypeCodeEnum.DAILY_PICKUP
+  },
+  CustomerClassification: {
+    Code: CustomerClassificationCodeEnum.NEGOTIATED_RATES,
   },
   Shipment: shipment
   // ShipmentRatingOptions: ShipmentRatingOptions,

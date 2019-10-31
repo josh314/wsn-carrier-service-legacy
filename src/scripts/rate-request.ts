@@ -1,9 +1,15 @@
 import { Client, PackagingTypeCodeEnum, ServiceCodeEnum } from 'ups/client';
 
+const args = require('minimist')(process.argv.slice(2), { alias: { "development": ["dev", "d"] } });
 
 const settings = require('../../settings');
 
-const client = new Client(settings.ups);
+const clientSettings = Object.assign(
+  { development: args.development },
+  settings.ups
+);
+
+const client = new Client( clientSettings );
 
 const packagingType: UPS.PackagingType = {
   Code: PackagingTypeCodeEnum.PACKAGE,
@@ -26,47 +32,47 @@ const pkgs: Array<UPS.Package> = [
         Code: "LBS",
         // Description: "pounds"
       },
-      Weight: "20.0"
+      Weight: "50.0"
     }
   },
-  {
-    PackagingType: packagingType,
-    Dimensions: {
-      UnitOfMeasurement: {
-        Code: "IN",
-        Description: "inches"
-      },
-      Height: "16",
-      Length: "14",
-      Width: "12",
-    },
-    PackageWeight: {
-      UnitOfMeasurement: {
-        Code: "LBS",
-        // Description: "pounds"
-      },
-      Weight: "1"
-    }
-  },
-  {
-    PackagingType: packagingType,
-    Dimensions: {
-      UnitOfMeasurement: {
-        Code: "IN",
-        Description: "inches"
-      },
-      Height: "12",
-      Length: "10",
-      Width: "6",
-    },
-    PackageWeight: {
-      UnitOfMeasurement: {
-        Code: "LBS",
-        // Description: "pounds"
-      },
-      Weight: "1"
-    }
-  },
+  // {
+  //   PackagingType: packagingType,
+  //   Dimensions: {
+  //     UnitOfMeasurement: {
+  //       Code: "IN",
+  //       Description: "inches"
+  //     },
+  //     Height: "16",
+  //     Length: "14",
+  //     Width: "12",
+  //   },
+  //   PackageWeight: {
+  //     UnitOfMeasurement: {
+  //       Code: "LBS",
+  //       // Description: "pounds"
+  //     },
+  //     Weight: "1"
+  //   }
+  // },
+  // {
+  //   PackagingType: packagingType,
+  //   Dimensions: {
+  //     UnitOfMeasurement: {
+  //       Code: "IN",
+  //       Description: "inches"
+  //     },
+  //     Height: "12",
+  //     Length: "10",
+  //     Width: "6",
+  //   },
+  //   PackageWeight: {
+  //     UnitOfMeasurement: {
+  //       Code: "LBS",
+  //       // Description: "pounds"
+  //     },
+  //     Weight: "1"
+  //   }
+  // },
 ];
 
 const destinationAddress: UPS.Address = {
@@ -115,6 +121,7 @@ const shipment: UPS.Shipment = {
   },
   Shipper: shipper,
   Service: service,
+  ShipmentRatingOptions: {}
 };
 
 const body: UPS.Rating.RateRequest = {

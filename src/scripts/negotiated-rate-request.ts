@@ -7,9 +7,16 @@ import {
 } from 'ups/client';
 
 
+const args = require('minimist')(process.argv.slice(2), { alias: { "development": ["dev", "d"] } });
+
 const settings = require('../../settings');
 
-const client = new Client(settings.ups);
+const clientSettings = Object.assign(
+  { development: args.development },
+  settings.ups
+);
+
+const client = new Client( clientSettings );
 
 const packagingType: UPS.PackagingType = {
   Code: PackagingTypeCodeEnum.PACKAGE,

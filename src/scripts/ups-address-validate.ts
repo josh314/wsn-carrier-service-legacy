@@ -6,7 +6,12 @@ const accessLicenseNumber: UPS.AccessLicenseNumber = settings.ups.accessLicenseN
 const user = settings.ups.user;
 const password = settings.ups.password;
 
-const client = new Client(settings.ups);
+const clientSettings = Object.assign( 
+  { development: true }, 
+  settings.ups
+);
+
+const client = new Client( clientSettings );
 
 const body: UPS.AV.AddressValidationRequestBody = {
   AccessRequest: {
