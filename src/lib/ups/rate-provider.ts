@@ -70,6 +70,9 @@ export const packageFromOrderItemShippingItem = (shippingItem: Shopify.ShippingI
   return pkg;
 };
 
+const getBestRate = (rateResponses: Array<UPS.Rating.RateResponse>): number => {
+  return 0;
+};
 
 interface RateProviderOptions {
   accountNumber: string,
@@ -85,7 +88,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
   private client: UPS.ApiClient;
 
   constructor(options: RateProviderOptions) {
-    
+
     this.accountNumber = options.accountNumber;
 
     this.client = new Client({
@@ -170,11 +173,14 @@ export class UpsRateProvider implements CarrierService.RateProvider {
     // TODO: what if no shopifyProduct or shopifyProduct.shippingItems ?
     const packages: Array<UPS.Package> = boxItems.map( orderItem => orderItem.shopifyProduct.shippingItems ).flat().map(packageFromOrderItemShippingItem);
 
-    const rateRequest = buildRateRequest(packages, destination);
+    const rateResponses: Array<UPS.Rating.RateResponse> = await Promise.all([
+      this.getNegotiatedRate( packages , destination ),
+      this.getGfpRate( packages, destination )
+    ]);
 
-    const rateResponse: UPS.Rating.RateResponse = await this.client.ratingRequest(rateRequest);
+    const bestRate: number = getBestRate(rateResponses);
 
-    return parseFloat(rateResponse.RatedShipment.TotalCharges.MonetaryValue);
+    return bestRate;
   }
   public async getPalletRates( palletItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
     return [];
