@@ -151,6 +151,16 @@ export class UpsRateProvider implements CarrierService.RateProvider {
     });
   }
 
+  public async getGfpRate(packages: Array<UPS.Package>, destination: CarrierService.Contact ): Promise<UPS.Rating.RateResponse> {
+    const rateRequest: UPS.Rating.RateRequest = buildRateRequest( packages, destination, { negotiatedRates: true, gfpRates: true } );
+    return this.client.ratingRequest(rateRequest);
+  }
+
+  public async getNegotiatedRate(packages: Array<UPS.Package>, destination: CarrierService.Contact ): Promise<UPS.Rating.RateResponse> {
+    const rateRequest: UPS.Rating.RateRequest = buildRateRequest( packages, destination, { negotiatedRates: true, gfpRates: false } );
+    return this.client.ratingRequest(rateRequest);
+  }
+
   public async getBoxRate( boxItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise<number> {
     // TODO: what if no shopifyProduct or shopifyProduct.shippingItems ?
     const packages: Array<UPS.Package> = boxItems.map( orderItem => orderItem.shopifyProduct.shippingItems ).flat().map(packageFromOrderItemShippingItem);
