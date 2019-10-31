@@ -67,8 +67,11 @@ type PickupTypeCodeEnum =
 
 // There are many possible alert codes. Only recording ones we might actual use in our logic
 type AlertCodeEnum =
-  "110920" // When user indicated Residential indicator is different from AMS Classification.
-
+  "110920" | // When user indicated Residential indicator is different from AMS Classification.
+  "112153" | // Unregistered User
+  "112154" | // FBR688: FULL RATES RETURNED. CUSTOMER COULD NOT BE FOUND FOR THAT ZIP CODE."
+  "112155"
+;
 
 /*************************************************
  * API Authentication & Access
@@ -141,7 +144,18 @@ export interface Package {
   PackagingType: PackagingType,
   Dimensions: Dimensions,
   PackageWeight: Weight,
+  Commodity?: Commodity
   // PackageServiceOptions?:
+}
+
+export type FreightClass = "60";
+
+export interface Commodity {
+  FreightClass: FreightClass,
+  NMFC?: {
+    PrimeCode: string,
+    SubCode?: string
+  }
 }
 
 /***********************************************
@@ -185,6 +199,10 @@ export interface FRSPaymentInformation {
       "03"  //BillThirdParty
   },
   AccountNumber: string,
+  Address?: {
+    PostalCode?: string,
+    CountryCode: string
+  }
 }
 
 export interface Shipment  {
