@@ -52,6 +52,36 @@ export interface ComputeRateOptions {
   items: Array<OrderItem>
 }
 
+export type DimensionUnits =
+  'feet' | /* TODO: not valid  in Shipstation */
+  'inches' |
+  'centimeters';
+
+export type WeightUnits =
+  'pounds' |
+  'ounces' |
+  'grams' |
+  'kilograms';
+
+export type PackagingType = 
+  'package' |
+  'pallet' |
+  'ltl' |
+  'truckload'
+;
+
+export interface ShippingItem {
+  packagingType: PackagingType,
+  weight: number,
+  weightUnits: WeightUnits,
+  height: number,
+  heightUnits: DimensionUnits,
+  length: number,
+  lengthUnits: DimensionUnits,
+  width: number,
+  widthUnits: DimensionUnits,
+}
+
 export class Rate {
   public readonly service_name: string;
   public readonly description: string;
@@ -69,7 +99,7 @@ export interface PalletRate {
 }
 
 export class RateProvider {
-  public getBoxRate( boxItems: Array<DressedOrderItem>, destination: Contact ): Promise<number>;
+  public getBoxRate( shippingItems: Array<ShippingItem>, destination: Contact ): Promise<number>;
   public getPalletRates( palletItems: Array<DressedOrderItem>, destination: Contact ): Promise< Array<PalletRate> >;
 }
 
