@@ -49,7 +49,7 @@ export interface DressedOrderItem extends OrderItem {
 
 export interface ComputeRateOptions {
   destination: Contact,
-  items: Array<OrderItem>
+  orderItems: Array<OrderItem>
 }
 
 export type DimensionUnits =

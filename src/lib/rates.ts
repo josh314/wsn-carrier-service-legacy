@@ -74,7 +74,7 @@ const attachProductToItem = ( products: Array<Shopify.Product> ) => {
 *********/
 export async function computeRates(opts: CarrierService.ComputeRateOptions): Promise< Array<Rate> > {
   try{
-    const productVariantIds: Array<number> = opts.items.map( x => x.variant_id ).filter(x=>x);
+    const productVariantIds: Array<number> = opts.orderItems.map( x => x.variant_id ).filter(x=>x);
     const products: Array<Shopify.Product> = await shopifyClient.getProductData(productVariantIds);
 
     if(process.env.DEBUG) {
@@ -83,7 +83,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
       console.log( JSON.stringify(products, null, 2) );
     }
 
-    const items: Array<CarrierService.DressedOrderItem> = opts.items.map(attachProductToItem(products));
+    const items: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
 
 
     const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
