@@ -70,6 +70,7 @@ interface ClientSettings {
   accessLicenseNumber: UPS.AccessLicenseNumber, // The Access Key
   user: UPS.User,
   password: UPS.Password,
+  development?: boolean
 }
 
 type Endpoint = 'Rate' | 'AV';
@@ -88,7 +89,7 @@ export class Client implements UPS.ApiClient {
     this.user = settings.user;
     this.password = settings.password;
 
-    this.baseUrl = process.env.NODE_ENV === 'development' ? 'https://wwwcie.ups.com/rest' : 'https://onlinetools.ups.com/rest';
+    this.baseUrl = settings.development ? 'https://wwwcie.ups.com/rest' : 'https://onlinetools.ups.com/rest';
   }
 
   public async request(endpoint: Endpoint, body: UPS.ApiRequestBody): Promise<UPS.ApiResponseContainer> {

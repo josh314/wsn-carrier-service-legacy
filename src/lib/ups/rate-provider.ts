@@ -102,7 +102,8 @@ export class UpsRateProvider implements CarrierService.RateProvider {
       accountNumber: process.env.UPS_ACCOUNT_NUMBER!,
       accessLicenseNumber: process.env.UPS_ACCESS_KEY!,
       user: process.env.UPS_USER!,
-      password: process.env.UPS_PASSWORD!
+      password: process.env.UPS_PASSWORD!,
+      development: process.env.NODE_ENV === 'development'
     });
   }
 
