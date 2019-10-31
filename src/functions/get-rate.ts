@@ -81,7 +81,7 @@ async function getRate(rateReq: CarrierService.RateRequest): Promise<CarrierServ
 
     const computeRateOpts: CarrierService.ComputeRateOptions = {
       destination: rateReq.destination,
-      items: rateReq.items
+      orderItems: rateReq.items
     };
 
     resp = {

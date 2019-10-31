@@ -72,6 +72,7 @@ export type PackagingType =
 
 export interface ShippingItem {
   packagingType: PackagingType,
+  shipsByFreight?: boolean,
   weight: number,
   weightUnits: WeightUnits,
   height: number,
@@ -100,7 +101,7 @@ export interface PalletRate {
 
 export class RateProvider {
   public getBoxRate( shippingItems: Array<ShippingItem>, destination: Contact ): Promise<number>;
-  public getPalletRates( palletItems: Array<DressedOrderItem>, destination: Contact ): Promise< Array<PalletRate> >;
+  public getPalletRates( palletItems: Array<ShippingItem>, destination: Contact ): Promise< Array<PalletRate> >;
 }
 
 

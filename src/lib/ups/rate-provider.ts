@@ -26,8 +26,8 @@ interface RateOptions {
   gfpRates?: boolean
 }
 
-const getPackageWeight = (shippingItem: Shopify.ShippingItem): UPS.Weight => {
-  let factors: Map<Shopify.WeightUnits, number> = new Map([
+const getPackageWeight = (shippingItem: CarrierService.ShippingItem): UPS.Weight => {
+  let factors: Map<CarrierService.WeightUnits, number> = new Map([
     [ 'pounds', 1 ],
     [ 'ounces', 1/16 ],
     [ 'grams', 0.0022 ],
@@ -42,8 +42,8 @@ const getPackageWeight = (shippingItem: Shopify.ShippingItem): UPS.Weight => {
   };
 };
 
-const getPackageDimensions = (shippingItem: Shopify.ShippingItem): UPS.Dimensions => {
-  let factors: Map<Shopify.DimensionUnits, number> = new Map([
+const getPackageDimensions = (shippingItem: CarrierService.ShippingItem): UPS.Dimensions => {
+  let factors: Map<CarrierService.DimensionUnits, number> = new Map([
     [ 'inches', 1 ],
     [ 'feet', 12 ],
     [ 'centimeters', 0.394 ]
@@ -58,7 +58,7 @@ const getPackageDimensions = (shippingItem: Shopify.ShippingItem): UPS.Dimension
   };
 };
 
-export const packageFromOrderItemShippingItem = (shippingItem: Shopify.ShippingItem): UPS.Package => {
+export const packageFromOrderItemShippingItem = (shippingItem: CarrierService.ShippingItem): UPS.Package => {
   const pkg: UPS.Package = {
     PackagingType: {
       Code: PackagingTypeCodeEnum.PACKAGE
@@ -139,7 +139,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
       };
       rateRequest.Shipment.ShipmentRatingOptions.NegotiatedRatesIndicator = "1";
   
-      Object.assign(rateRequest.Shipment.Shipper, { ShipperNumber: this.accountNumber })
+      Object.assign(rateRequest.Shipment.Shipper, { ShipperNumber: this.accountNumber });
     }
   
     if(options.gfpRates) {
@@ -157,7 +157,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
     }
   
     return rateRequest;
-  };
+  }
 
   public async getGfpRate(packages: Array<UPS.Package>, destination: CarrierService.Contact ): Promise<UPS.Rating.RateResponse> {
     const rateRequest: UPS.Rating.RateRequest = this.buildRateRequest( packages, destination, { negotiatedRates: true, gfpRates: true } );
@@ -169,9 +169,9 @@ export class UpsRateProvider implements CarrierService.RateProvider {
     return this.client.ratingRequest(rateRequest);
   }
 
-  public async getBoxRate( boxItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise<number> {
+  public async getBoxRate( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise<number> {
     // TODO: what if no shopifyProduct or shopifyProduct.shippingItems ?
-    const packages: Array<UPS.Package> = boxItems.map( orderItem => orderItem.shopifyProduct.shippingItems ).flat().map(packageFromOrderItemShippingItem);
+    const packages: Array<UPS.Package> = shippingItems.map(packageFromOrderItemShippingItem);
 
     const rateResponses: Array<UPS.Rating.RateResponse> = await Promise.all([
       this.getNegotiatedRate( packages , destination ),
@@ -182,7 +182,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
 
     return bestRate;
   }
-  public async getPalletRates( palletItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
+  public async getPalletRates( palletItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
     return [];
   }
 }

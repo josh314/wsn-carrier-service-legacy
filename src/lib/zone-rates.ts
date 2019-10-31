@@ -82,19 +82,6 @@ const zoneRates: Array<ZoneRate> = [
  * Exported rate functions
  * 
  ***************************************************/
-const getTotalShippingItems = ( items: Array<CarrierService.DressedOrderItem> ): number => {
-  return items.reduce( (total, item): number => {
-    if( item.shopifyProduct.shippingItems && item.shopifyProduct.shippingItems.length > 0 ) {
-      return total + item.shopifyProduct.shippingItems.length * item.quantity;
-    }
-    else if( item.shopifyProduct.numBoxes ) {
-      return total + item.shopifyProduct.numBoxes * item.quantity;
-    }
-    else {
-      return total + item.quantity;
-    }
-  }, 0);
-};
 
 function getBoxRateForState(state: State, numberOfItems: number): number {
   let zone: Zone | undefined = stateZones.get(state);
@@ -141,24 +128,24 @@ function getPalletFreightRate(state: State, numberOfItems: number): number {
  **************/
 
 export class ZoneRateProvider implements CarrierService.RateProvider {
-  public async getBoxRate( boxItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise<number> {
-    return getBoxRateForState( destination.province, getTotalShippingItems( boxItems ) );
+  public async getBoxRate( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise<number> {
+    return getBoxRateForState( destination.province, shippingItems.length  );
   }
 
-  public async getPalletRates( palletItems: Array<CarrierService.DressedOrderItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
+  public async getPalletRates( palletItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
     const palletRates: Array<CarrierService.PalletRate> = [];
 
     if(palletItems.length > 0) {
   
-      if(palletItems.every( i => !i.shopifyProduct.shipsByFreight() )) {
+      if(palletItems.every( i => !i.shipsByFreight )) {
         palletRates.push({
-          cost: getPalletBreakdownRate( destination.province , getTotalShippingItems( palletItems ) ),
+          cost: getPalletBreakdownRate( destination.province , palletItems.length ),
           isFreight: false
         });
       }
   
       palletRates.push({
-        cost: getPalletFreightRate( destination.province , getTotalShippingItems( palletItems ) ),
+        cost: getPalletFreightRate( destination.province , palletItems.length ),
         isFreight: true
       });
   

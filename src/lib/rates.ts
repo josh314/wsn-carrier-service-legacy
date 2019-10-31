@@ -53,7 +53,7 @@ const shopifyClient: shopify.Client = new shopify.Client({
   accessToken: process.env.SHOPIFY_ACCESS_TOKEN!,
 });
 
-const rateProvider: CarrierService.RateProvider = new ZoneRateProvider();
+const zoneRateProvider: CarrierService.RateProvider = new ZoneRateProvider();
 const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider({
   accountNumber: process.env.UPS_ACCOUNT_NUMBER!,
   accessLicenseNumber: process.env.UPS_ACCESS_KEY!,
@@ -77,12 +77,48 @@ const attachProductToItem = ( products: Array<Shopify.Product> ) => {
   };
 };
 
+const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem ): Array<CarrierService.ShippingItem> => {
+
+  const product: Shopify.Product = orderItem.shopifyProduct;
+
+  const baseShippingItem: CarrierService.ShippingItem = { 
+    packagingType: product.isTruckload ? 'truckload' : ( product.isPallet ? 'pallet' : 'package' ),
+    shipsByFreight: product.shipsByFreight(),
+    weight: 0,
+    weightUnits: 'pounds',
+    height: 0,
+    heightUnits: 'inches',
+    length: 0,
+    lengthUnits: 'inches',
+    width: 0,
+    widthUnits: 'inches'
+  };
+
+  let shippingItems: Array<CarrierService.ShippingItem> = [];
+  if( product.shippingItems && product.shippingItems.length > 0 ) {
+    product.shippingItems.forEach( productShippingItem => {
+      for(let i=0; i<orderItem.quantity; i++) {
+        const newCarrierServiceShippingItem: CarrierService.ShippingItem = Object.assign( {} , baseShippingItem, productShippingItem );        
+        shippingItems.push(newCarrierServiceShippingItem);
+      }
+    });
+  }
+  else {
+    const num = product.numBoxes ? product.numBoxes * orderItem.quantity : orderItem.quantity;
+
+    shippingItems.concat( Array( num ).fill( baseShippingItem ) );
+  }
+
+  return shippingItems;
+};
+
 /*********************************************
 * Main
 * 
 *********/
 export async function computeRates(opts: CarrierService.ComputeRateOptions): Promise< Array<Rate> > {
   try{
+
     const productVariantIds: Array<number> = opts.orderItems.map( x => x.variant_id ).filter(x=>x);
     const products: Array<Shopify.Product> = await shopifyClient.getProductData(productVariantIds);
 
@@ -94,22 +130,42 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
 
     const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
 
+    const shippingItems: Array<CarrierService.ShippingItem> = dressedOrderItems.map(getOrderItemShippingItems).flat();
 
-    const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
-    const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
+    const palletShippingItems: Array<CarrierService.ShippingItem> = [];
+    const zoneRateShippingItems: Array<CarrierService.ShippingItem> = [];
+    const upsShippingItems: Array<CarrierService.ShippingItem> = [];
+
+    shippingItems.forEach( item => {
+      if ( item.packagingType === 'pallet' ) {
+        palletShippingItems.push( item );
+      }
+      else if ( !item.weight ) {
+        zoneRateShippingItems.push( item );
+      }
+      else {
+        upsShippingItems.push( item );
+      }
+    });
+
+
+    // const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
+    // const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
     // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
 
-    const palletRates: Array< CarrierService.PalletRate > = await zoneRateProvider.getPalletRates(palletItems, opts.destination);
+    const boxLotZoneRate: number = await zoneRateProvider.getBoxRate( zoneRateShippingItems, opts.destination );
+    const palletRates: Array< CarrierService.PalletRate > = await zoneRateProvider.getPalletRates(palletShippingItems, opts.destination);
+    const boxLotUpsRate: number = await upsRateProvider.getBoxRate( upsShippingItems, opts.destination );
 
-    const boxRate: number = await zoneRateProvider.getBoxRate( boxLotItems , opts.destination );
+    const totalBoxRate: number = boxLotZoneRate + boxLotUpsRate;
 
     let rates: Array<Rate>;
 
     if( palletRates.length > 0 ) {
-      rates = palletRates.map( pr => new Rate(boxRate, pr) );
+      rates = palletRates.map( pr => new Rate(totalBoxRate, pr) );
     }
     else {
-      rates = [ new Rate(boxRate, null) ];
+      rates = [ new Rate(totalBoxRate, null) ];
     }
 
     return rates;
