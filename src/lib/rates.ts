@@ -44,13 +44,22 @@ class Rate implements CarrierService.Rate {
 }
 
 /********************************************************************
- * Initialization
+ * Initialization of clients & rate-providers
  *
  * *******************/
 
 const shopifyClient: shopify.Client = new shopify.Client({
   store: process.env.SHOPIFY_STORE_NAME!,
   accessToken: process.env.SHOPIFY_ACCESS_TOKEN!,
+});
+
+const rateProvider: CarrierService.RateProvider = new ZoneRateProvider();
+const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider({
+  accountNumber: process.env.UPS_ACCOUNT_NUMBER!,
+  accessLicenseNumber: process.env.UPS_ACCESS_KEY!,
+  user: process.env.UPS_USER!,
+  password: process.env.UPS_PASSWORD!,
+  development: process.env.NODE_ENV === 'development'
 });
 
 /**********************************************
@@ -90,19 +99,9 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
     // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
 
-    const rateProvider: CarrierService.RateProvider = new ZoneRateProvider();
-    const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider({
-      accountNumber: process.env.UPS_ACCOUNT_NUMBER!,
-      accessLicenseNumber: process.env.UPS_ACCESS_KEY!,
-      user: process.env.UPS_USER!,
-      password: process.env.UPS_PASSWORD!,
-      development: process.env.NODE_ENV === 'development'
-    });
+    const palletRates: Array< CarrierService.PalletRate > = await zoneRateProvider.getPalletRates(palletItems, opts.destination);
 
-
-    const palletRates: Array< CarrierService.PalletRate > = await rateProvider.getPalletRates(palletItems, opts.destination);
-
-    const boxRate: number = await rateProvider.getBoxRate( boxLotItems , opts.destination );
+    const boxRate: number = await zoneRateProvider.getBoxRate( boxLotItems , opts.destination );
 
     let rates: Array<Rate>;
 
