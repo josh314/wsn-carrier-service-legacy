@@ -92,7 +92,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
       console.log( JSON.stringify(products, null, 2) );
     }
 
-    const items: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
+    const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
 
 
     const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
