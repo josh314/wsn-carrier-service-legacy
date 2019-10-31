@@ -91,7 +91,13 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
 
     const rateProvider: CarrierService.RateProvider = new ZoneRateProvider();
-    const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider();
+    const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider({
+      accountNumber: process.env.UPS_ACCOUNT_NUMBER!,
+      accessLicenseNumber: process.env.UPS_ACCESS_KEY!,
+      user: process.env.UPS_USER!,
+      password: process.env.UPS_PASSWORD!,
+      development: process.env.NODE_ENV === 'development'
+    });
 
 
     const palletRates: Array< CarrierService.PalletRate > = await rateProvider.getPalletRates(palletItems, opts.destination);

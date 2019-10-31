@@ -93,17 +93,25 @@ export const packageFromOrderItemShippingItem = (shippingItem: Shopify.ShippingI
 };
 
 
+interface RateProviderOptions {
+  accountNumber: string,
+  accessLicenseNumber: string,
+  user: string,
+  password: string,
+  development: boolean
+}
+
 export class UpsRateProvider implements CarrierService.RateProvider {
 
   private client: UPS.ApiClient;
 
-  constructor() {
+  constructor(options: RateProviderOptions) {
     this.client = new Client({
-      accountNumber: process.env.UPS_ACCOUNT_NUMBER!,
-      accessLicenseNumber: process.env.UPS_ACCESS_KEY!,
-      user: process.env.UPS_USER!,
-      password: process.env.UPS_PASSWORD!,
-      development: process.env.NODE_ENV === 'development'
+      accountNumber: options.accountNumber,
+      accessLicenseNumber: options.accessLicenseNumber,
+      user: options.user,
+      password: options.password,
+      development: options.development,
     });
   }
 
