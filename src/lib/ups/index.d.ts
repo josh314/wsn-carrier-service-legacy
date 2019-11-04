@@ -213,7 +213,8 @@ export interface Shipment  {
   Service?: Service,
   Package: Array<Package> | Package ,
   ShipmentRatingOptions: ShipmentRatingOptions,
-  FRSPaymentInformation?: FRSPaymentInformation
+  FRSPaymentInformation?: FRSPaymentInformation,
+  TaxInformationIndicator?: "1", //value doesn't matter: "1" chosen as a convention
 }
 
 export interface CustomerClassification {
@@ -294,7 +295,17 @@ declare namespace Rating {
       TransportationCharges: Weight,
       ServiceOptionsCharges: Weight,
       TotalCharges: Charge,
-      NegotiatedRateCharges: Charge,
+      NegotiatedRateCharges: {
+        TotalCharge: Charge,
+      }
+      FRSShipmentData: {
+        TransportationCharges: {
+          GrossCharge: Charge,
+          DiscountAmount: Charge,
+          DiscountPercentage: string,
+          NetCharge: Charge
+        }
+      },
       RatedPackage: Array<RatedPackage>
     }
   }
