@@ -94,8 +94,9 @@ const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem )
     widthUnits: 'inches'
   };
 
-  let shippingItems: Array<CarrierService.ShippingItem> = [];
+  let shippingItems: Array<CarrierService.ShippingItem>;
   if( product.shippingItems && product.shippingItems.length > 0 ) {
+    shippingItems = [];
     product.shippingItems.forEach( productShippingItem => {
       for(let i=0; i<orderItem.quantity; i++) {
         const newCarrierServiceShippingItem: CarrierService.ShippingItem = Object.assign( {} , baseShippingItem, productShippingItem );        
@@ -106,10 +107,18 @@ const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem )
   else {
     const num = product.numBoxes ? product.numBoxes * orderItem.quantity : orderItem.quantity;
 
-    shippingItems.concat( Array( num ).fill( baseShippingItem ) );
+    shippingItems = Array( num ).fill( baseShippingItem );
   }
 
   return shippingItems;
+};
+
+const getAllShippingItems = ( dressedOrderItems: Array<CarrierService.DressedOrderItem> ): Array<CarrierService.ShippingItem> => {
+  const orderItemsShippingItems: Array< Array<CarrierService.ShippingItem> > = dressedOrderItems.map(getOrderItemShippingItems);
+
+  return orderItemsShippingItems.reduce( ( allShippingItems: Array<CarrierService.ShippingItem> , singleOrderShippingItems: Array<CarrierService.ShippingItem>): Array<CarrierService.ShippingItem> => {
+    return allShippingItems.concat(singleOrderShippingItems);
+  }, []);
 };
 
 /*********************************************
@@ -129,8 +138,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     }
 
     const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
-
-    const shippingItems: Array<CarrierService.ShippingItem> = dressedOrderItems.map(getOrderItemShippingItems).flat();
+    const shippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems(dressedOrderItems);
 
     const palletShippingItems: Array<CarrierService.ShippingItem> = [];
     const zoneRateShippingItems: Array<CarrierService.ShippingItem> = [];
@@ -148,6 +156,20 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
       }
     });
 
+    if(process.env.DEBUG) {
+      console.log('\n');
+      console.log('Shipping Items:');
+      console.log( JSON.stringify(shippingItems, null, 2) );
+
+      console.log('Zone Rate Shipping Items:');
+      console.log( JSON.stringify(zoneRateShippingItems, null, 2) );
+
+      console.log('Pallet Shipping Items:');
+      console.log( JSON.stringify(palletShippingItems, null, 2) );
+
+      console.log('UPS Shipping Items:');
+      console.log( JSON.stringify(upsShippingItems, null, 2) );
+    }
 
     // const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
     // const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
