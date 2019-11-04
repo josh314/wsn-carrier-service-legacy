@@ -38,7 +38,7 @@ const getPackageWeight = (shippingItem: CarrierService.ShippingItem): UPS.Weight
     UnitOfMeasurement: {
       Code: "LBS",
     },
-    Weight: (factor*shippingItem.weight).toString(2)
+    Weight: (factor*shippingItem.weight).toString()
   };
 };
 
@@ -52,9 +52,9 @@ const getPackageDimensions = (shippingItem: CarrierService.ShippingItem): UPS.Di
     UnitOfMeasurement: {
       Code: 'IN'
     },
-    Height: ( (factors.get(shippingItem.heightUnits) as number) * shippingItem.height ).toString(2),
-    Length: ( (factors.get(shippingItem.lengthUnits) as number) * shippingItem.length ).toString(2),
-    Width: ( (factors.get(shippingItem.widthUnits) as number) * shippingItem.width ).toString(2)
+    Height: ( (factors.get(shippingItem.heightUnits) as number) * shippingItem.height ).toString(),
+    Length: ( (factors.get(shippingItem.lengthUnits) as number) * shippingItem.length ).toString(),
+    Width: ( (factors.get(shippingItem.widthUnits) as number) * shippingItem.width ).toString()
   };
 };
 
@@ -76,7 +76,7 @@ const getBestRate = (rateResponses: Array<UPS.Rating.RateResponse>): number => {
     return parseFloat(rateValue);
   });
 
-  charges.sort().reverse();
+  charges.sort();
   return charges[0];
 };
 
