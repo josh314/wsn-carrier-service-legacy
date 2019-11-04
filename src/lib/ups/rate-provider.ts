@@ -182,7 +182,10 @@ export class UpsRateProvider implements CarrierService.RateProvider {
   }
 
   public async getBoxRate( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise<number> {
-    // TODO: what if no shopifyProduct or shopifyProduct.shippingItems ?
+    if(!shippingItems.length) {
+      return 0;
+    }
+
     const packages: Array<UPS.Package> = shippingItems.map(packageFromOrderItemShippingItem);
 
     const rateResponses: Array<UPS.Rating.RateResponse> = await Promise.all([
