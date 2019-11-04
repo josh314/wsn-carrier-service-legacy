@@ -194,7 +194,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
 
     return bestRate;
   }
-  public async getPalletRates( palletItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
+  public async getPalletRates( _palletItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
     return [];
   }
 }
