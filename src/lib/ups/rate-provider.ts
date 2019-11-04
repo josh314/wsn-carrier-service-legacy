@@ -71,7 +71,13 @@ export const packageFromOrderItemShippingItem = (shippingItem: CarrierService.Sh
 };
 
 const getBestRate = (rateResponses: Array<UPS.Rating.RateResponse>): number => {
-  return 0;
+  const charges: Array<number> = rateResponses.map( r => {
+    const rateValue: string = r.RatedShipment.NegotiatedRateCharges ? r.RatedShipment.NegotiatedRateCharges.TotalCharge.MonetaryValue : r.RatedShipment.TotalCharges.MonetaryValue;
+    return parseFloat(rateValue);
+  });
+
+  charges.sort().reverse();
+  return charges[0];
 };
 
 interface RateProviderOptions {
@@ -130,6 +136,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
         ShipmentRatingOptions: {
           RateChartIndicator: "1"
         },
+        TaxInformationIndicator: "1"
       },
     };
   
@@ -160,6 +167,11 @@ export class UpsRateProvider implements CarrierService.RateProvider {
   }
 
   public async getGfpRate(packages: Array<UPS.Package>, destination: CarrierService.Contact ): Promise<UPS.Rating.RateResponse> {
+    packages.forEach( p => {
+      if(!p.Commodity || !p.Commodity.FreightClass) {
+        p.Commodity = { FreightClass: "60" };
+      }
+    });
     const rateRequest: UPS.Rating.RateRequest = this.buildRateRequest( packages, destination, { negotiatedRates: true, gfpRates: true } );
     return this.client.ratingRequest(rateRequest);
   }
