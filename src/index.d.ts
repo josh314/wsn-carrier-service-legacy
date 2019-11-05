@@ -1,5 +1,8 @@
-// The below interfaces are largely determined by the data structures used in Shopify webhook request
-
+/********************************************************
+ * Types determined by the structure of data requests/responses
+ * in the Shopify Carrier Service webhook
+ * 
+ ************/
 export interface RateRequestBody {
   readonly rate: RateRequest
 }
@@ -43,6 +46,23 @@ export interface OrderItem {
   readonly variant_id: number,
 }
 
+
+export class Rate {
+  public readonly service_name: string;
+  public readonly description: string;
+  public readonly service_code: string;
+  public readonly currency: string;
+  public readonly total_price: string;
+  public readonly phone_required?: boolean;
+  public readonly min_delivery_date?: string;
+  public readonly max_delivery_date?: string;
+}
+
+/********************************************************
+ * Other internal types
+ * 
+ ************/
+
 export interface DressedOrderItem extends OrderItem {
   shopifyProduct: Shopify.Product
 }
@@ -83,16 +103,6 @@ export interface ShippingItem {
   widthUnits: DimensionUnits,
 }
 
-export class Rate {
-  public readonly service_name: string;
-  public readonly description: string;
-  public readonly service_code: string;
-  public readonly currency: string;
-  public readonly total_price: string;
-  public readonly phone_required?: boolean;
-  public readonly min_delivery_date?: string;
-  public readonly max_delivery_date?: string;
-}
 
 export interface PalletRate {
   cost: number,
