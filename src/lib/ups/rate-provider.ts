@@ -107,7 +107,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
     
   }
 
-  private buildRateRequest(packages: Array<UPS.Package>, contact: CarrierService.Contact, options: RateOptions = {}): UPS.Rating.RateRequest {
+  private buildRateRequest(packages: Array<UPS.Package>, contact: CarrierService.Contact, options: RateOptions ): UPS.Rating.RateRequest {
 
     const rateRequest: UPS.Rating.RateRequest = {
       Request: {
