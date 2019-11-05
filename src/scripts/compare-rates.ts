@@ -304,7 +304,7 @@ const shippingItems: Array<CarrierService.ShippingItem> =
 
 // rateProvider.getGfpRate( packages, destination )
 // rateProvider.getNegotiatedRate( packages, destination )
-rateProvider.getBoxRate( shippingItems, destination)
+rateProvider.getBoxRates( shippingItems, destination)
   .then(resp=> {
     // if(!process.env.DEBUG) { // Will already print the response via debug option in the client.request function
     //   console.log( typeof resp === 'object' ? JSON.stringify(resp, null, 2) : resp );
