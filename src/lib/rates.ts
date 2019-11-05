@@ -17,7 +17,7 @@ class Rate implements CarrierService.Rate {
   public readonly min_delivery_date?: string;
   public readonly max_delivery_date?: string;
 
-  constructor(boxRate: number, palletRate: CarrierService.PalletRate | null) {
+  constructor(boxRate: number, palletRate: CarrierService.RateProviderRate | null) {
     this.service_code = 'wholesaleninjas_shipping'; //TODO!
     this.currency = 'USD';
 
@@ -28,7 +28,7 @@ class Rate implements CarrierService.Rate {
       this.description = 'Includes tracking.';
       cost = boxRate;
     }
-    else if ( !palletRate.isFreight ) {
+    else if ( !palletRate.options.isFreight ) {
       this.service_name = 'Standard Ground Shipping with Pallet Breakdown Service';
       this.description = 'Pallets are broken down into boxes and shipped via standard ground shipping. Includes tracking.';
       cost = boxRate + palletRate.cost;
@@ -121,6 +121,18 @@ const getAllShippingItems = ( dressedOrderItems: Array<CarrierService.DressedOrd
   }, []);
 };
 
+const cmpRateProviderRates = ( a: CarrierService.RateProviderRate, b: CarrierService.RateProviderRate ): number => {
+  if( a.cost < b.cost) {
+    return - 1;
+  }
+  else if ( a.cost > b.cost ) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+};
+
 /*********************************************
 * Main
 * 
@@ -175,11 +187,25 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     // const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
     // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
 
-    const boxLotZoneRate: number = await zoneRateProvider.getBoxRate( zoneRateShippingItems, opts.destination );
-    const palletRates: Array< CarrierService.PalletRate > = await zoneRateProvider.getPalletRates(palletShippingItems, opts.destination);
-    const boxLotUpsRate: number = await upsRateProvider.getBoxRate( upsShippingItems, opts.destination );
+    const boxLotZoneRates: CarrierService.RateProviderRate[] = await zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination );
+    const palletRates: CarrierService.RateProviderRate[] = await zoneRateProvider.getPalletRates(palletShippingItems, opts.destination);
+    const boxLotUpsRates: CarrierService.RateProviderRate[] = await upsRateProvider.getBoxRates( upsShippingItems, opts.destination );
 
-    const totalBoxRate: number = boxLotZoneRate + boxLotUpsRate;
+    //sort rates
+    boxLotZoneRates.sort(cmpRateProviderRates);
+    palletRates.sort(cmpRateProviderRates);
+    boxLotUpsRates.sort(cmpRateProviderRates);
+
+    console.log('Box Lot Zone Rates:');
+    console.log( JSON.stringify(boxLotZoneRates, null, 2) );
+
+    console.log('Pallet Rates:');
+    console.log( JSON.stringify(palletRates, null, 2) );
+
+    console.log('Box Lot UPS rates:');
+    console.log( JSON.stringify(boxLotUpsRates, null, 2) );
+
+    const totalBoxRate: number = [ boxLotZoneRates[0], boxLotUpsRates[0] ].filter( _ => _ ).reduce( (total, rate) => total + rate.cost, 0);
 
     let rates: Array<Rate>;
 

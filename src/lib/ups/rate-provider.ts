@@ -21,9 +21,14 @@ const WHOLESALE_NINJAS: UPS.Shipper = {
   Address: WAREHOUSE,
 };
 
-interface RateOptions {
-  negotiatedRates?: boolean,
-  gfpRates?: boolean
+interface RateOptions extends CarrierService.RateOptions{
+  isNegotiated?: boolean,
+  isGfp?: boolean
+}
+
+interface UpsRateProviderRate extends CarrierService.RateProviderRate {
+  provider: 'UPS',
+  options: RateOptions
 }
 
 const getPackageWeight = (shippingItem: CarrierService.ShippingItem): UPS.Weight => {
@@ -70,14 +75,25 @@ export const packageFromOrderItemShippingItem = (shippingItem: CarrierService.Sh
   return pkg;
 };
 
-const getBestRate = (rateResponses: Array<UPS.Rating.RateResponse>): number => {
-  const charges: Array<number> = rateResponses.map( r => {
-    const rateValue: string = r.RatedShipment.NegotiatedRateCharges ? r.RatedShipment.NegotiatedRateCharges.TotalCharge.MonetaryValue : r.RatedShipment.TotalCharges.MonetaryValue;
-    return parseFloat(rateValue);
-  });
+const buildRateProviderBoxRate = (rateResponse: UPS.Rating.RateResponse): UpsRateProviderRate => {
+  
+  let rate: UpsRateProviderRate;
 
-  charges.sort();
-  return charges[0];
+  const isNegotiated = !!rateResponse.RatedShipment.NegotiatedRateCharges;
+  const rateValueStr: string = isNegotiated ? rateResponse.RatedShipment.NegotiatedRateCharges.TotalCharge.MonetaryValue : rateResponse.RatedShipment.TotalCharges.MonetaryValue;
+  
+  rate = {
+    provider: 'UPS',
+    packagingType: 'package',
+    cost: parseFloat(rateValueStr),
+    options: {
+      isFreight: false,
+      isNegotiated: isNegotiated,
+      isGfp: !!rateResponse.RatedShipment.FRSShipmentData,
+    }
+  };
+
+  return rate;
 };
 
 interface RateProviderOptions {
@@ -140,7 +156,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
       },
     };
   
-    if(options.negotiatedRates) {
+    if(options.isNegotiated) {
       rateRequest.CustomerClassification = {
         Code: CustomerClassificationCodeEnum.NEGOTIATED_RATES,
       };
@@ -149,7 +165,7 @@ export class UpsRateProvider implements CarrierService.RateProvider {
       Object.assign(rateRequest.Shipment.Shipper, { ShipperNumber: this.accountNumber });
     }
   
-    if(options.gfpRates) {
+    if(options.isGfp) {
       rateRequest.Shipment.ShipmentRatingOptions.FRSShipmentIndicator = "1";
       rateRequest.Shipment.FRSPaymentInformation = {
         Type: {
@@ -172,18 +188,32 @@ export class UpsRateProvider implements CarrierService.RateProvider {
         p.Commodity = { FreightClass: "60" };
       }
     });
-    const rateRequest: UPS.Rating.RateRequest = this.buildRateRequest( packages, destination, { negotiatedRates: true, gfpRates: true } );
+
+    const rateOptions: RateOptions = {
+      isFreight: false,
+      isNegotiated: true,
+      isGfp: true
+    };
+
+    const rateRequest: UPS.Rating.RateRequest = this.buildRateRequest( packages, destination, rateOptions );
     return this.client.ratingRequest(rateRequest);
   }
 
   public async getNegotiatedRate(packages: Array<UPS.Package>, destination: CarrierService.Contact ): Promise<UPS.Rating.RateResponse> {
-    const rateRequest: UPS.Rating.RateRequest = this.buildRateRequest( packages, destination, { negotiatedRates: true, gfpRates: false } );
+
+    const rateOptions: RateOptions = {
+      isFreight: false,
+      isNegotiated: true,
+      isGfp: false
+    };
+
+    const rateRequest: UPS.Rating.RateRequest = this.buildRateRequest( packages, destination, rateOptions );
     return this.client.ratingRequest(rateRequest);
   }
 
-  public async getBoxRate( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise<number> {
+  public async getBoxRates( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< UpsRateProviderRate[] > {
     if(!shippingItems.length) {
-      return 0;
+      return [];
     }
 
     const packages: Array<UPS.Package> = shippingItems.map(packageFromOrderItemShippingItem);
@@ -193,11 +223,9 @@ export class UpsRateProvider implements CarrierService.RateProvider {
       this.getGfpRate( packages, destination )
     ]);
 
-    const bestRate: number = getBestRate(rateResponses);
-
-    return bestRate;
+    return rateResponses.map( buildRateProviderBoxRate );
   }
-  public async getPalletRates( _palletItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< Array<CarrierService.PalletRate> > {
+  public async getPalletRates( _palletItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< UpsRateProviderRate[] > {
     return [];
   }
 }

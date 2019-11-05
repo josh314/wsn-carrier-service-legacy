@@ -103,17 +103,22 @@ export interface ShippingItem {
   widthUnits: DimensionUnits,
 }
 
+export class RateProvider {
+  public getBoxRates( shippingItems: Array<ShippingItem>, destination: Contact ): Promise< Array<RateProviderRate> >;
+  public getPalletRates( palletItems: Array<ShippingItem>, destination: Contact ): Promise< Array<RateProviderRate> >;
+}
 
-export interface PalletRate {
+
+export interface RateProviderRate {
+  provider: 'ZONE' | 'UPS' | 'FREIGHT_QUOTE',
   cost: number,
+  packagingType: PackagingType,
+  options: RateOptions,
+}
+
+export interface RateOptions {
   isFreight: boolean
 }
-
-export class RateProvider {
-  public getBoxRate( shippingItems: Array<ShippingItem>, destination: Contact ): Promise<number>;
-  public getPalletRates( palletItems: Array<ShippingItem>, destination: Contact ): Promise< Array<PalletRate> >;
-}
-
 
 export interface RateResponse {
   rates: Array<Rate>
