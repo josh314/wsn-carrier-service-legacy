@@ -18,7 +18,7 @@ const destination: CarrierService.Contact = {
   address1: "308 Dallam Rd",
   city: "Newark",
   province: "DE",
-  postal_code: "19711",
+  postal_code: "19712",
   country: "US"
 };
 
@@ -31,188 +31,188 @@ const pkg: UPS.Package = {
       Code: "IN",
       Description: "inches"
     },
-    Height: "12",
-    Length: "10",
-    Width: "8",
+    Height: "22",
+    Length: "22",
+    Width: "22",
   },
   PackageWeight: {
     UnitOfMeasurement: {
       Code: "LBS",
       // Description: "pounds"
     },
-    Weight: "10.0"
+    Weight: "40.0"
   }
 };
 
-// const packages: Array<UPS.Package>= Array.from({length:1}).map(x => pkg);
+const packages: Array<UPS.Package>= Array.from({length:1}).map(x => pkg);
 
-const packages: Array<UPS.Package> =  [
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "12",
-      "Length": "10",
-      "Width": "6"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "10"
-    }
-  },
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "22",
-      "Length": "22",
-      "Width": "22"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "45"
-    }
-  },
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "22",
-      "Length": "22",
-      "Width": "22"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "40"
-    }
-  },
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "22",
-      "Length": "22",
-      "Width": "22"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "45"
-    }
-  },
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "22",
-      "Length": "22",
-      "Width": "22"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "40"
-    }
-  },
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "22",
-      "Length": "22",
-      "Width": "22"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "45"
-    }
-  },
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "22",
-      "Length": "22",
-      "Width": "22"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "45"
-    }
-  },
-  {
-    "PackagingType": {
-      "Code": PackagingTypeCodeEnum.PACKAGE
-    },
-    "Dimensions": {
-      "UnitOfMeasurement": {
-        "Code": "IN"
-      },
-      "Height": "22",
-      "Length": "22",
-      "Width": "22"
-    },
-    "PackageWeight": {
-      "UnitOfMeasurement": {
-        "Code": "LBS"
-      },
-      "Weight": "40"
-    }
-  }
-];
+// const packages: Array<UPS.Package> =  [
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "40"
+//     }
+//   },
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "45"
+//     }
+//   },
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "40"
+//     }
+//   },
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "45"
+//     }
+//   },
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "40"
+//     }
+//   },
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "45"
+//     }
+//   },
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "45"
+//     }
+//   },
+//   {
+//     "PackagingType": {
+//       "Code": PackagingTypeCodeEnum.PACKAGE
+//     },
+//     "Dimensions": {
+//       "UnitOfMeasurement": {
+//         "Code": "IN"
+//       },
+//       "Height": "22",
+//       "Length": "22",
+//       "Width": "22"
+//     },
+//     "PackageWeight": {
+//       "UnitOfMeasurement": {
+//         "Code": "LBS"
+//       },
+//       "Weight": "40"
+//     }
+//   }
+// ];
 
 const shippingItems: Array<CarrierService.ShippingItem> =
 [
   {
     "packagingType": "package",
     "shipsByFreight": false,
-    "weight": 10,
+    "weight": 40,
     "weightUnits": "pounds",
-    "height": 12,
+    "height": 22,
     "heightUnits": "inches",
-    "length": 10,
+    "length": 22,
     "lengthUnits": "inches",
-    "width": 6,
+    "width": 22,
     "widthUnits": "inches"
   },
   {
