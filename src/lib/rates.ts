@@ -183,10 +183,6 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
       console.log( JSON.stringify(upsShippingItems, null, 2) );
     }
 
-    // const boxLotItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isBoxLot : false);
-    // const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
-    // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
-
     // request all Rates simultaneously
     const [
       boxLotZoneRates,
@@ -194,7 +190,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
       boxLotUpsRates
     ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
       zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
-      zoneRateProvider.getPalletRates(palletShippingItems, opts.destination),
+      zoneRateProvider.getPalletRates( palletShippingItems, opts.destination),
       upsRateProvider.getBoxRates( upsShippingItems, opts.destination )
     ]);
 
