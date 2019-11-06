@@ -178,7 +178,14 @@ function getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProv
 
 export class ZoneRateProvider implements CarrierService.RateProvider {
   public async getBoxRates( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< ZoneRateProviderRate[] > {
-    return [ getBoxRateForState( destination.province, shippingItems.length  ) ];
+    const boxLotRates: ZoneRateProviderRate[] = [];
+
+    if(shippingItems.length > 0) {
+      boxLotRates.push( getBoxRateForState( destination.province , shippingItems.length ) );
+    }
+
+    return boxLotRates;
+
   }
 
   public async getPalletRates( palletItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< ZoneRateProviderRate[] > {
