@@ -35,7 +35,7 @@ export class Product implements Shopify.Product {
     this.sku = gqlProductVariant.sku;
 
 
-    try {
+    try { //TODO: what about variants like everyday bargains? 
       this.totalUnits = parseInt(gqlProductVariant.product.totalUnits!.value as string);
     }
     catch(e) {
@@ -43,14 +43,14 @@ export class Product implements Shopify.Product {
     }
 
     try {
-      this.numBoxes = parseInt(gqlProductVariant.product.numBoxes!.value as string);
+      this.numBoxes = parseInt(gqlProductVariant.numBoxes!.value as string);
     }
     catch(e) {
       console.log(`No numBoxes for product variant ${this.variantId}.`);
     }
 
     try {
-      this.shippingItems = JSON.parse(gqlProductVariant.product.shippingItems!.value);
+      this.shippingItems = JSON.parse(gqlProductVariant.shippingItems!.value);
     }
     catch(e) {
       console.log(`No valid shippingItems JSON for product variant ${this.variantId}.`);

@@ -21,17 +21,17 @@ const gqlQueries = {
         _${idx}: productVariant(id: "${gid}") {
           id
           sku
+          shippingItems: metafield(namespace:"shipping", key:"shippingItems") {
+            value
+          }
+          numBoxes: metafield(namespace:"shipping", key:"numBoxes") {
+            value
+          }
           product {
             id
             title
             tags
             totalUnits: metafield(namespace:"lot", key:"totalUnits") {
-              value
-            }
-            numBoxes: metafield(namespace:"shipping", key:"numBoxes") {
-              value
-            }
-            shippingItems: metafield(namespace:"shipping", key:"shippingItems") {
               value
             }
           }          

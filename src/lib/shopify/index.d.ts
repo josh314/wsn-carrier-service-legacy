@@ -44,17 +44,17 @@ interface GraphQlProduct {
   totalUnits?: null | {
     value: string | number
   }
-  numBoxes?: null | {
-    value: string | number
-  }
-  shippingItems?: null | {
-    value: string
-  }
 }
 
 interface GraphQlProductVariant {
   id: string,
   sku: string,
+  shippingItems?: null | {
+    value: string
+  },
+  numBoxes?: null | {
+    value: string | number
+  }
   product: GraphQlProduct
 }
 
