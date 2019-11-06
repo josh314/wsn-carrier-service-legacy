@@ -187,9 +187,16 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     // const palletItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isPallet : false);
     // const truckloadItems = items.filter( item => item.shopifyProduct ? item.shopifyProduct.isTruckload : false);
 
-    const boxLotZoneRates: CarrierService.RateProviderRate[] = await zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination );
-    const palletRates: CarrierService.RateProviderRate[] = await zoneRateProvider.getPalletRates(palletShippingItems, opts.destination);
-    const boxLotUpsRates: CarrierService.RateProviderRate[] = await upsRateProvider.getBoxRates( upsShippingItems, opts.destination );
+    // request all Rates simultaneously
+    const [
+      boxLotZoneRates,
+      palletRates,
+      boxLotUpsRates
+    ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
+      zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
+      zoneRateProvider.getPalletRates(palletShippingItems, opts.destination),
+      upsRateProvider.getBoxRates( upsShippingItems, opts.destination )
+    ]);
 
     //sort rates
     boxLotZoneRates.sort(cmpRateProviderRates);
