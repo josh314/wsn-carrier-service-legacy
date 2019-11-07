@@ -2,6 +2,8 @@ import { RateRequest, RateRequestBody } from 'rate-request';
 
 import { Rate, ComputeRateOptions, computeRates } from 'rates';
 
+import { sendErrorNotification } from 'notify';
+
 /**************************************************
  * Types
  * 
@@ -17,6 +19,7 @@ interface RateResponse {
  * ******************************/
 
 export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<any> => {
+  let rateRequestBody: RateRequestBody;
   try{
     if(process.env.DEBUG) {
       console.log('event:');
@@ -24,8 +27,8 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     }
     let resp: RateResponse;
     if (event.httpMethod.toUpperCase() === 'POST' && event.body) {
-      const body: RateRequestBody = JSON.parse(event.body);
-      resp = await getRate(body.rate);
+      rateRequestBody = JSON.parse(event.body);
+      resp = await getRate(rateRequestBody.rate);
     }
     else if (event.httpMethod.toUpperCase() === 'GET') {
       resp = await getSampleRate();
@@ -42,6 +45,12 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
   }
   catch (e) {
     console.error(e);
+    sendErrorNotification(
+      e,
+      event,
+      context,
+      rateRequestBody
+    )
     return {
       statusCode: 500,
       body: JSON.stringify({ error: true, message: e.message }),
