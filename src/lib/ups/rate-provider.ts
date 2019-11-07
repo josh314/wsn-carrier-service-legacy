@@ -6,6 +6,14 @@ import {
   PickupTypeCodeEnum
 } from "ups/client";
 
+/*******************************************
+ * Constants
+ *
+ * ********/
+
+let MARKUP_PCT: number | undefined = undefined;
+MARKUP_PCT = 15;
+
 const WAREHOUSE: UPS.Address = {
   AddressLine: [
     "124 Greenmount Rd",
@@ -21,6 +29,11 @@ const WHOLESALE_NINJAS: UPS.Shipper = {
   Address: WAREHOUSE,
 };
 
+/***********************************************
+ * Types
+ * 
+ *******/
+
 interface RateOptions extends CarrierService.RateOptions{
   isNegotiated?: boolean,
   isGfp?: boolean
@@ -30,6 +43,11 @@ interface UpsRateProviderRate extends CarrierService.RateProviderRate {
   provider: 'UPS',
   options: RateOptions
 }
+
+/*************************************************
+ * Functions
+ * 
+ ********/
 
 const getPackageWeight = (shippingItem: CarrierService.ShippingItem): UPS.Weight => {
   let factors: Map<CarrierService.WeightUnits, number> = new Map([
@@ -79,17 +97,24 @@ const buildRateProviderBoxRate = (rateResponse: UPS.Rating.RateResponse): UpsRat
   
   let rate: UpsRateProviderRate;
 
-  const isNegotiated = !!rateResponse.RatedShipment.NegotiatedRateCharges;
+  // determine rate options from response
+  const isNegotiated: boolean = !!rateResponse.RatedShipment.NegotiatedRateCharges;
+  const isGfp: boolean = !!rateResponse.RatedShipment.FRSShipmentData;
+
+  // extract rate value (as a string) from the API response differently for different request types
   const rateValueStr: string = isNegotiated ? rateResponse.RatedShipment.NegotiatedRateCharges.TotalCharge.MonetaryValue : rateResponse.RatedShipment.TotalCharges.MonetaryValue;
   
+  // convert rate string to number and apply markup if applicable
+  const rateValue: number = parseFloat(rateValueStr) * ( 1 + ( MARKUP_PCT ? MARKUP_PCT/100 : 0) );
+
   rate = {
     provider: 'UPS',
     packagingType: 'package',
-    cost: parseFloat(rateValueStr),
+    cost: rateValue,
     options: {
       isFreight: false,
       isNegotiated: isNegotiated,
-      isGfp: !!rateResponse.RatedShipment.FRSShipmentData,
+      isGfp: isGfp
     }
   };
 
