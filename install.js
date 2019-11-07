@@ -30,7 +30,7 @@ const shopify = new Shopify({
 
 const deploys = {
   "local": "https://josh-wsn.ngrok.io/.netlify/functions/get-rate",
-  "dev": "https://dev--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
+  "development": "https://development--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
   "staging": "https://staging--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
   "prod": "https://shipping-rates.wholesaleninjas.com/.netlify/functions/get-rate",
 };
