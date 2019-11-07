@@ -39,7 +39,8 @@ class Rate implements CarrierService.Rate {
       cost = boxRate + palletRate.cost;
     }
 
-    this.total_price = (100*cost).toString();
+    // Convert to cents, round up to nearest cent, and cast as string
+    this.total_price = ( Math.ceil( 100*cost ) ).toString();
   }
 }
 
