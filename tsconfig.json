@@ -7,6 +7,7 @@
     // "outDir": "./dist",
     // strictness
     "noEmitOnError": true,
+    "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "strictBindCallApply": true,
