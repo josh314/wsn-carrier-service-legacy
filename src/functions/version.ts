@@ -1,7 +1,7 @@
 declare const __APP__: string;
 declare const __VERSION__: string;
 
-export const handler = async (_event: AWSLambda.APIGatewayProxyEvent, _context: AWSLambda.APIGatewayEventRequestContext): Promise<any> => ({
+export const handler = async (_event: AWSLambda.APIGatewayProxyEvent, _context: AWSLambda.APIGatewayEventRequestContext): Promise<AWSLambda.APIGatewayProxyResult> => ({
   statusCode: 200,
   body: JSON.stringify({
     app: __APP__,

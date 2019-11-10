@@ -7,7 +7,7 @@ import { sendErrorNotification } from 'notify';
  * 
  * ******************************/
 
-export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<any> => {
+export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AWSLambda.APIGatewayEventRequestContext): Promise<AWSLambda.APIGatewayProxyResult> => {
   let rateRequestBody: CarrierService.RateRequestBody | undefined;
   try{
     if(process.env.DEBUG) {
