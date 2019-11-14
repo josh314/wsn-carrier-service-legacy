@@ -59,10 +59,6 @@ export class Client {
   }
 
   async request(opts: Shopify.RequestOpts): Promise<any> {
-    if(process.env.DEBUG) {
-      console.log('Query:');
-      console.log(opts.gqlQuery);
-    }
 
     const req: rp.Options = {
       method: 'POST',
@@ -73,8 +69,10 @@ export class Client {
       },
       body: opts.gqlQuery
     };
-    const shopifyResp = await rp(req);
 
+    console.log('Requesting product data from Shopify:');
+    console.log( JSON.stringify(req, null, 2) );
+    const shopifyResp = await rp(req);
 
     if(process.env.DEBUG) {
       console.log('Shopify Response:');
