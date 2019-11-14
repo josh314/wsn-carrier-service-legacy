@@ -33,6 +33,7 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
     };
   }
   catch (e) {
+    console.error(new Date());
     console.error(e);
     if( process.env.NODE_ENV === 'production' ) {
       sendErrorNotification(
