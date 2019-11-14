@@ -103,6 +103,7 @@ function getBoxRateForState(state: State, numberOfItems: number): ZoneRateProvid
       provider: 'ZONE',
       cost: zoneRates[zone].boxLot * numberOfItems,
       packagingType: 'package',
+      numberOfRatedItems: numberOfItems,
       options: {
         isFreight: false,
         zone: zone
@@ -128,6 +129,7 @@ function getPalletBreakdownRate(state: State, numberOfItems: number): ZoneRatePr
       provider: 'ZONE',
       cost: zoneRates[zone].palletBreakdown * numberOfItems,
       packagingType: 'pallet',
+      numberOfRatedItems: numberOfItems,
       options: {
         isFreight: false,
         zone: zone
@@ -157,6 +159,7 @@ function getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProv
       provider: 'ZONE',
       cost: zoneRate.palletFreight[ idx ],
       packagingType: 'pallet',
+      numberOfRatedItems: numberOfItems,
       options: {
         isFreight: true,
         zone: zone

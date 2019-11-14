@@ -113,6 +113,7 @@ export interface RateProviderRate {
   provider: 'ZONE' | 'UPS' | 'FREIGHT_QUOTE',
   cost: number,
   packagingType: PackagingType,
+  numberOfRatedItems: number,
   options: RateOptions,
 }
 
