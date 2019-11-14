@@ -81,6 +81,9 @@ const attachProductToItem = ( products: Array<Shopify.Product> ) => {
 const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem ): Array<CarrierService.ShippingItem> => {
 
   const product: Shopify.Product = orderItem.shopifyProduct;
+  if(!product) {
+    throw new Error(`No product found for orderItem: ${JSON.stringify( orderItem )}`);
+  }
 
   const baseShippingItem: CarrierService.ShippingItem = { 
     packagingType: product.isTruckload ? 'truckload' : ( product.isPallet ? 'pallet' : 'package' ),
