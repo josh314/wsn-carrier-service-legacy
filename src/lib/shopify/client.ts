@@ -95,18 +95,14 @@ export class Client {
   }
 
   async getProductData(productVariantIds: Array<number>): Promise<Array<Product>> {
-    try {
-      const shopifyResp: Shopify.GraphQlResponse = await this.request({ 
-        gqlQuery: gqlQueries.getProductData(productVariantIds.map(productVariantId2Gid)),
-      });
-    
-      const gqlProductVariants: Array<Shopify.GraphQlProductVariant> = arrayifyGqlMultiData(shopifyResp.data);
-      const products: Array<Product> = gqlProductVariants.filter( _ => _ /* filter out null */ ).map( _ => new Product(_) );
-      return products;
-    }
-    catch(e) {
-      console.log(e);
-      throw new Error(e);
-    }
+
+    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+      gqlQuery: gqlQueries.getProductData(productVariantIds.map(productVariantId2Gid)),
+    });
+
+    const gqlProductVariants: Array<Shopify.GraphQlProductVariant> = arrayifyGqlMultiData(shopifyResp.data);
+    const products: Array<Product> = gqlProductVariants.filter( _ => _ /* filter out null */ ).map( _ => new Product(_) );
+    return products;
+
   }
 }

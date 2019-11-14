@@ -142,91 +142,85 @@ const cmpRateProviderRates = ( a: CarrierService.RateProviderRate, b: CarrierSer
 * 
 *********/
 export async function computeRates(opts: CarrierService.ComputeRateOptions): Promise< Array<Rate> > {
-  try{
+  const productVariantIds: Array<number> = opts.orderItems.map( x => x.variant_id ).filter(x=>x);
+  const products: Array<Shopify.Product> = await shopifyClient.getProductData(productVariantIds);
 
-    const productVariantIds: Array<number> = opts.orderItems.map( x => x.variant_id ).filter(x=>x);
-    const products: Array<Shopify.Product> = await shopifyClient.getProductData(productVariantIds);
+  if(process.env.DEBUG) {
+    console.log('\n');
+    console.log('Product data:');
+    console.log( JSON.stringify(products, null, 2) );
+  }
 
-    if(process.env.DEBUG) {
-      console.log('\n');
-      console.log('Product data:');
-      console.log( JSON.stringify(products, null, 2) );
+  const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
+  const shippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems(dressedOrderItems);
+
+  const palletShippingItems: Array<CarrierService.ShippingItem> = [];
+  const zoneRateShippingItems: Array<CarrierService.ShippingItem> = [];
+  const upsShippingItems: Array<CarrierService.ShippingItem> = [];
+
+  shippingItems.forEach( item => {
+    if ( item.packagingType === 'pallet' ) {
+      palletShippingItems.push( item );
     }
-
-    const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
-    const shippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems(dressedOrderItems);
-
-    const palletShippingItems: Array<CarrierService.ShippingItem> = [];
-    const zoneRateShippingItems: Array<CarrierService.ShippingItem> = [];
-    const upsShippingItems: Array<CarrierService.ShippingItem> = [];
-
-    shippingItems.forEach( item => {
-      if ( item.packagingType === 'pallet' ) {
-        palletShippingItems.push( item );
-      }
-      else if ( !item.weight ) {
-        zoneRateShippingItems.push( item );
-      }
-      else {
-        upsShippingItems.push( item );
-      }
-    });
-
-    if(process.env.DEBUG) {
-      console.log('\n');
-      console.log('Shipping Items:');
-      console.log( JSON.stringify(shippingItems, null, 2) );
-
-      console.log('Zone Rate Shipping Items:');
-      console.log( JSON.stringify(zoneRateShippingItems, null, 2) );
-
-      console.log('Pallet Shipping Items:');
-      console.log( JSON.stringify(palletShippingItems, null, 2) );
-
-      console.log('UPS Shipping Items:');
-      console.log( JSON.stringify(upsShippingItems, null, 2) );
-    }
-
-    // request all Rates simultaneously
-    const [
-      boxLotZoneRates,
-      palletRates,
-      boxLotUpsRates
-    ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
-      zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
-      zoneRateProvider.getPalletRates( palletShippingItems, opts.destination),
-      upsRateProvider.getBoxRates( upsShippingItems, opts.destination )
-    ]);
-
-    //sort rates
-    boxLotZoneRates.sort(cmpRateProviderRates);
-    palletRates.sort(cmpRateProviderRates);
-    boxLotUpsRates.sort(cmpRateProviderRates);
-
-    console.log('Box Lot Zone Rates:');
-    console.log( JSON.stringify(boxLotZoneRates, null, 2) );
-
-    console.log('Pallet Rates:');
-    console.log( JSON.stringify(palletRates, null, 2) );
-
-    console.log('Box Lot UPS rates:');
-    console.log( JSON.stringify(boxLotUpsRates, null, 2) );
-
-    const totalBoxRate: number = [ boxLotZoneRates[0], boxLotUpsRates[0] ].filter( _ => _ ).reduce( (total, rate) => total + rate.cost, 0);
-
-    let rates: Array<Rate>;
-
-    if( palletRates.length > 0 ) {
-      rates = palletRates.map( pr => new Rate(totalBoxRate, pr) );
+    else if ( !item.weight ) {
+      zoneRateShippingItems.push( item );
     }
     else {
-      rates = [ new Rate(totalBoxRate, null) ];
+      upsShippingItems.push( item );
     }
+  });
 
-    return rates;
+  if(process.env.DEBUG) {
+    console.log('\n');
+    console.log('Shipping Items:');
+    console.log( JSON.stringify(shippingItems, null, 2) );
+
+    console.log('Zone Rate Shipping Items:');
+    console.log( JSON.stringify(zoneRateShippingItems, null, 2) );
+
+    console.log('Pallet Shipping Items:');
+    console.log( JSON.stringify(palletShippingItems, null, 2) );
+
+    console.log('UPS Shipping Items:');
+    console.log( JSON.stringify(upsShippingItems, null, 2) );
   }
-  catch(e) {
-    console.log(e);
-    throw new Error(e);
+
+  // request all Rates simultaneously
+  const [
+    boxLotZoneRates,
+    palletRates,
+    boxLotUpsRates
+  ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
+    zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
+    zoneRateProvider.getPalletRates( palletShippingItems, opts.destination),
+    upsRateProvider.getBoxRates( upsShippingItems, opts.destination )
+  ]);
+
+  //sort rates
+  boxLotZoneRates.sort(cmpRateProviderRates);
+  palletRates.sort(cmpRateProviderRates);
+  boxLotUpsRates.sort(cmpRateProviderRates);
+
+  console.log('Box Lot Zone Rates:');
+  console.log( JSON.stringify(boxLotZoneRates, null, 2) );
+
+  console.log('Pallet Rates:');
+  console.log( JSON.stringify(palletRates, null, 2) );
+
+  console.log('Box Lot UPS rates:');
+  console.log( JSON.stringify(boxLotUpsRates, null, 2) );
+
+  const totalBoxRate: number = [ boxLotZoneRates[0], boxLotUpsRates[0] ].filter( _ => _ ).reduce( (total, rate) => total + rate.cost, 0);
+
+  let rates: Array<Rate>;
+
+  if( palletRates.length > 0 ) {
+    rates = palletRates.map( pr => new Rate(totalBoxRate, pr) );
   }
+  else {
+    rates = [ new Rate(totalBoxRate, null) ];
+  }
+
+  return rates;
+
 }
