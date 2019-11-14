@@ -51,48 +51,29 @@ export const handler = async (event: AWSLambda.APIGatewayProxyEvent, context: AW
 };
 
 
-async function getSampleRate(): Promise<CarrierService.RateResponse> {
-  let resp: CarrierService.RateResponse;
-  try{
-
-    resp = {
-      rates: []
-    };
-
-    const rate: CarrierService.Rate = {
+const getSampleRate = async () =>  ({
+  rates: [
+    {
       service_name: 'Fast, Convenient Shipping',
       description: 'Includes tracking. Sample response',
-      service_code: 'wholesaleninjas_shipping', //TODO!
+      service_code: 'wholesaleninjas_shipping',
       currency: 'USD',
       total_price: '10.00',
-    };
+    }
+  ]
+});
 
-    resp.rates.push(rate);
-
-    return resp;
-  }
-  catch(e) {
-    throw new Error(`Failure: Server error in \`getSampleRate\`: ${e}`);
-  }
-}
 
 async function getRate(rateReq: CarrierService.RateRequest): Promise<CarrierService.RateResponse> {
-  let resp: CarrierService.RateResponse;
-  try{
 
-    const computeRateOpts: CarrierService.ComputeRateOptions = {
-      destination: rateReq.destination,
-      orderItems: rateReq.items
-    };
+  const computeRateOpts: CarrierService.ComputeRateOptions = {
+    destination: rateReq.destination,
+    orderItems: rateReq.items
+  };
 
-    resp = {
-      rates: await computeRates(computeRateOpts)
-    };
+  const resp: CarrierService.RateResponse = {
+    rates: await computeRates(computeRateOpts)
+  };
 
-    return resp;
-  }
-  catch(e) {
-    throw new Error(`Failure: Server error in \`getRate\`: ${e}`);
-    // return getSampleRate();
-  }
+  return resp;
 }
