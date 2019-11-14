@@ -90,7 +90,6 @@ export class Client implements UPS.ApiClient {
     this.password = settings.password;
 
     this.baseUrl = settings.development ? 'https://wwwcie.ups.com/rest' : 'https://onlinetools.ups.com/rest';
-    console.log(`UPS API base URL: ${this.baseUrl}.`);
   }
 
   public async request(endpoint: Endpoint, body: UPS.ApiRequestBody): Promise<UPS.ApiResponseContainer> {
@@ -113,6 +112,8 @@ export class Client implements UPS.ApiClient {
     };
     const apiResp: UPS.ApiResponseContainer = await rp(req);
 
+    console.log(`Making UPS API request:`);
+    console.log(JSON.stringify(req, null,2));
 
     if(process.env.DEBUG) {
       console.log('UPS Response:');
