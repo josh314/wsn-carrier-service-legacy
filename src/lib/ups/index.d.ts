@@ -306,7 +306,7 @@ declare namespace Rating {
           NetCharge: Charge
         }
       },
-      RatedPackage: Array<RatedPackage>
+      RatedPackage: RatedPackage | Array<RatedPackage>
     }
   }
 

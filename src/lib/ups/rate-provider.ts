@@ -111,7 +111,7 @@ const buildRateProviderBoxRate = (rateResponse: UPS.Rating.RateResponse): UpsRat
     provider: 'UPS',
     packagingType: 'package',
     cost: rateValue,
-    numberOfRatedItems: rateResponse.RatedShipment.RatedPackage.length,
+    numberOfRatedItems: Array.isArray(rateResponse.RatedShipment.RatedPackage) ? rateResponse.RatedShipment.RatedPackage.length : 1,
     options: {
       isFreight: false,
       isNegotiated: isNegotiated,
