@@ -103,7 +103,21 @@ typings/
 # build directories
 /dist
 /functions
+/build
+
+# secrets
+settings.js
+fedex-credentials
 
 # sandbox scripts
 demo.js
 try.js
+
+# samples, notes and cruft
+notes.md
+foo*
+requests/
+sample/
+*.dat
+shipping-items-update.ql
+state-postal-codes.json
