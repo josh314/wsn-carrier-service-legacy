@@ -4,14 +4,28 @@ const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
 
-const scriptsDir = path.join(__dirname, 'src', 'scripts');
-const scripts = fs.readdirSync(scriptsDir).map(f => { const match = f.match(/(.*)\.(js|ts)$/); return match ? match[1] : null; }).reduce((obj, f)=>{
-  if(f) {
-    obj[f] = path.join(scriptsDir, f);
-  }
-  return obj;
-}, {});
 
+const scripts = {};
+const getScripts = (dir, base) => {
+  const dirents = fs.readdirSync( path.join(base, dir), { withFileTypes: true } );
+  dirents.map( de => {
+    if( de.isDirectory() ) {
+      getScripts(de.name, path.join(base, dir));
+    }
+    else {
+      const name = de.name;
+      const match = name.match(/(.*)\.(js|ts)$/);
+      if(match && match[1]) {
+        scripts[path.join(base, dir, match[1])] = path.join( process.cwd() , base, dir, name);
+      }
+    }
+  });
+}
+
+// Go into the src dir to run the getScripts function. Then back out again to proceed with the rest of webpack eval
+process.chdir('src');
+getScripts('scripts', '.');
+process.chdir('..');
 
 plugins = [
   new webpack.DefinePlugin({
@@ -29,7 +43,7 @@ const opts = {
   entry: scripts,
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, 'build', 'scripts'),
+    path: path.join(__dirname, 'build'),
   },
   module: {
     rules: [

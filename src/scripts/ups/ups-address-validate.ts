@@ -1,6 +1,6 @@
-import { Client } from '../lib/ups/client';
+import { Client } from 'ups/client';
 
-const settings = require('../../settings');
+const settings = require('../../../settings');
 
 const accessLicenseNumber: UPS.AccessLicenseNumber = settings.ups.accessLicenseNumber;
 const user = settings.ups.user;

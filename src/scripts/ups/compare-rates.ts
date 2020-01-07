@@ -5,7 +5,7 @@ import { PackagingTypeCodeEnum } from 'ups/client';
 
 const args = require('minimist')(process.argv.slice(2), { alias: { "development": ["dev", "d"] } });
 
-const settings = require('../../settings');
+const settings = require('../../../settings');
 
 const providerOptions = Object.assign(
   { development: args.development },
@@ -44,7 +44,7 @@ const pkg: UPS.Package = {
   }
 };
 
-const packages: Array<UPS.Package>= Array.from({length:1}).map(x => pkg);
+const _packages: Array<UPS.Package>= Array.from({length:1}).map(_ => pkg);
 
 // const packages: Array<UPS.Package> =  [
 //   {
@@ -309,6 +309,6 @@ rateProvider.getBoxRates( shippingItems, destination)
     // if(!process.env.DEBUG) { // Will already print the response via debug option in the client.request function
     //   console.log( typeof resp === 'object' ? JSON.stringify(resp, null, 2) : resp );
     // }
-    console.log(resp)
+    console.log(resp);
   })
   .catch(console.error);

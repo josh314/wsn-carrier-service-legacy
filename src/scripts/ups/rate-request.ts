@@ -1,15 +1,8 @@
-import { 
-  Client,
-  CustomerClassificationCodeEnum,
-  PackagingTypeCodeEnum,
-  ServiceCodeEnum,
-  PickupTypeCodeEnum
-} from 'ups/client';
-
+import { Client, PackagingTypeCodeEnum, ServiceCodeEnum } from 'ups/client';
 
 const args = require('minimist')(process.argv.slice(2), { alias: { "development": ["dev", "d"] } });
 
-const settings = require('../../settings');
+const settings = require('../../../settings');
 
 const clientSettings = Object.assign(
   { development: args.development },
@@ -39,47 +32,47 @@ const pkgs: Array<UPS.Package> = [
         Code: "LBS",
         // Description: "pounds"
       },
-      Weight: "20.0"
+      Weight: "50.0"
     }
   },
-  {
-    PackagingType: packagingType,
-    Dimensions: {
-      UnitOfMeasurement: {
-        Code: "IN",
-        Description: "inches"
-      },
-      Height: "16",
-      Length: "14",
-      Width: "12",
-    },
-    PackageWeight: {
-      UnitOfMeasurement: {
-        Code: "LBS",
-        // Description: "pounds"
-      },
-      Weight: "1"
-    }
-  },
-  {
-    PackagingType: packagingType,
-    Dimensions: {
-      UnitOfMeasurement: {
-        Code: "IN",
-        Description: "inches"
-      },
-      Height: "12",
-      Length: "10",
-      Width: "6",
-    },
-    PackageWeight: {
-      UnitOfMeasurement: {
-        Code: "LBS",
-        // Description: "pounds"
-      },
-      Weight: "1"
-    }
-  },
+  // {
+  //   PackagingType: packagingType,
+  //   Dimensions: {
+  //     UnitOfMeasurement: {
+  //       Code: "IN",
+  //       Description: "inches"
+  //     },
+  //     Height: "16",
+  //     Length: "14",
+  //     Width: "12",
+  //   },
+  //   PackageWeight: {
+  //     UnitOfMeasurement: {
+  //       Code: "LBS",
+  //       // Description: "pounds"
+  //     },
+  //     Weight: "1"
+  //   }
+  // },
+  // {
+  //   PackagingType: packagingType,
+  //   Dimensions: {
+  //     UnitOfMeasurement: {
+  //       Code: "IN",
+  //       Description: "inches"
+  //     },
+  //     Height: "12",
+  //     Length: "10",
+  //     Width: "6",
+  //   },
+  //   PackageWeight: {
+  //     UnitOfMeasurement: {
+  //       Code: "LBS",
+  //       // Description: "pounds"
+  //     },
+  //     Weight: "1"
+  //   }
+  // },
 ];
 
 const destinationAddress: UPS.Address = {
@@ -128,10 +121,7 @@ const shipment: UPS.Shipment = {
   },
   Shipper: shipper,
   Service: service,
-  ShipmentRatingOptions: {
-    NegotiatedRatesIndicator: "1",
-    RateChartIndicator: "1"
-  }
+  ShipmentRatingOptions: {}
 };
 
 const body: UPS.Rating.RateRequest = {
@@ -139,13 +129,7 @@ const body: UPS.Rating.RateRequest = {
     // RequestAction: "Rate",
     RequestOption: "Rate",
   },
-  PickupType: {
-    Code: PickupTypeCodeEnum.DAILY_PICKUP
-  },
-  CustomerClassification: {
-    Code: CustomerClassificationCodeEnum.NEGOTIATED_RATES,
-  },
-  Shipment: shipment,
+  Shipment: shipment
 };
 
 client.ratingRequest(body)
