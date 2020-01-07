@@ -43,7 +43,7 @@ if(command==='list') {
 else if (command==='create') {
 
   const carrierServiceSettings = {
-    "name": "Wholesale Ninjas Shipping Service",
+    "name": "wsn_carrier_service",
     "callback_url": args.callbackUrl || deploys[args.deploy || "local"],
     "service_discovery": true
   }
