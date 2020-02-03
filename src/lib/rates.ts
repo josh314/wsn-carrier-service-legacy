@@ -17,25 +17,37 @@ class Rate implements CarrierService.Rate {
   public readonly min_delivery_date?: string;
   public readonly max_delivery_date?: string;
 
-  constructor(boxRate: number, palletRate: CarrierService.RateProviderRate | null) {
+  constructor(boxRate: number, palletRate: CarrierService.RateProviderRate | null, boxRateShippingItems: CarrierService.ShippingItem[], palletRateShippingItems: CarrierService.ShippingItem[]) {
     this.service_code = 'wholesaleninjas_shipping'; //TODO!
     this.currency = 'USD';
 
-    let cost: number;
+    console.log('boxRateShippingItems:')
+    console.log(boxRateShippingItems)
 
+    const unweighedShippingItems = boxRateShippingItems.filter( _ => !_.weight );
+    let weighedShippingItems = boxRateShippingItems.filter( _ => _.weight );
+    console.log('unweighedShippingItems:')
+    console.log(unweighedShippingItems)
+    weighedShippingItems = weighedShippingItems.concat( unweighedShippingItems.map( _ => Object.assign( _, { weight: 40 } ) )  );
+    console.log('weighedShippingItems:')
+    console.log(weighedShippingItems)
+    const totalBoxWeight = weighedShippingItems.reduce( (totalWeight, box ) => totalWeight + box.weight , 0 );
+
+
+    let cost: number;
     if(!palletRate) {
       this.service_name = 'Standard Ground Shipping';
-      this.description = 'Includes tracking.';
+      this.description = `Rate for ${ weighedShippingItems.length > 1 ? `${weighedShippingItems.length } boxes` : '1 box' } with a ${weighedShippingItems.length > 1 ? 'total ' : '' }weight of approximately ${totalBoxWeight} pounds. Includes tracking.`;
       cost = boxRate;
     }
     else if ( !palletRate.options.isFreight ) {
       this.service_name = 'Standard Ground Shipping with Pallet Breakdown Service';
-      this.description = 'Pallets are broken down into boxes and shipped via standard ground shipping. Includes tracking.';
+      this.description = `Between ${ weighedShippingItems.length + 6*palletRateShippingItems.length }-${ weighedShippingItems.length + 8*palletRateShippingItems.length } boxes with a total weight of about ${totalBoxWeight + 400*palletRateShippingItems.length} pounds. Includes Tracking.`;
       cost = boxRate + palletRate.cost;
     }
     else {
       this.service_name = 'Freight Shipping';
-      this.description = 'Pallets will be shipped via freight & other items shipped separately via ground.';
+      this.description = `Your ${palletRateShippingItems.length > 1 ? `${palletRateShippingItems.length} pallets`: 'pallet'} will be shipped via freight & other items shipped separately via ground.`;
       cost = boxRate + palletRate.cost;
     }
 
@@ -215,10 +227,10 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   let rates: Array<Rate>;
 
   if( palletRates.length > 0 ) {
-    rates = palletRates.map( pr => new Rate(totalBoxRate, pr) );
+    rates = palletRates.map( pr => new Rate(totalBoxRate, pr, zoneRateShippingItems.concat(upsShippingItems), palletShippingItems) );
   }
   else {
-    rates = [ new Rate(totalBoxRate, null) ];
+    rates = [ new Rate(totalBoxRate, null, zoneRateShippingItems.concat(upsShippingItems), palletShippingItems) ];
   }
 
   return rates;
