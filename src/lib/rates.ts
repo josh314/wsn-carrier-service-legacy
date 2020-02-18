@@ -2,6 +2,15 @@ import * as shopify from 'shopify/client';
 import { ZoneRateProvider } from 'zone-rates';
 import { UpsRateProvider } from 'ups/rate-provider';
 
+const CANONICAL_DESTINATION: CarrierService.Contact = {
+  address1: '4604 FESSENEVA CT',
+  city: 'Naperville',
+  province: 'IL',
+  postal_code: '60564-5835',
+  country: 'US'
+};
+
+
 /*********************************************
  * Types
  * 
@@ -205,7 +214,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
     zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
     zoneRateProvider.getPalletRates( palletShippingItems, opts.destination),
-    upsRateProvider.getBoxRates( upsShippingItems, opts.destination )
+    upsRateProvider.getBoxRates( upsShippingItems, CANONICAL_DESTINATION )
   ]);
 
   //sort rates

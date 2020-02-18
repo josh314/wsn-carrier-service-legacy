@@ -12,7 +12,7 @@ import {
  * ********/
 
 let MARKUP_PCT: number | undefined = undefined;
-MARKUP_PCT = 15;
+MARKUP_PCT = -10;
 
 const WAREHOUSE: UPS.Address = {
   AddressLine: [
