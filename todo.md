@@ -8,3 +8,7 @@
 # Notifications
   - developer on error
   - log all requests to customer service or Charles email and netlify
+
+# freight pricing
+- east: $240 + $80 per additional pallet 
+- west: $360 + $100 per pallet

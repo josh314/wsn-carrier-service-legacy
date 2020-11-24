@@ -63,18 +63,27 @@ const stateZones: Map<State, Zone> = new Map(stateZonesList);
 interface ZoneRate {
   boxLot: number,
   palletBreakdown: number,
-  palletFreight: [ number, number, number, number, number ],
+  palletFreight: {
+    base: number,
+    per: number
+  },
 }
 const zoneRates: Array<ZoneRate> = [
   {
     boxLot: 30,
     palletBreakdown: 180,
-    palletFreight: [ 260, 340, 400, 440, 480 ]
+    palletFreight: {
+      base: 160, 
+      per: 80
+    }
   },
   {
     boxLot: 30,
     palletBreakdown: 180,
-    palletFreight: [ 360, 440, 500, 540, 580 ]
+    palletFreight: {
+      base: 260,
+      per: 100
+    }
   },
 ];
 
@@ -153,11 +162,9 @@ function getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProv
 
     const zoneRate: ZoneRate = zoneRates[zone];
 
-    const idx = Math.min( numberOfItems , zoneRate.palletFreight.length ) - 1;// Don't forget the -1!
-
     rate = {
       provider: 'ZONE',
-      cost: zoneRate.palletFreight[ idx ],
+      cost: zoneRate.palletFreight.base + numberOfItems * zoneRate.palletFreight.per,
       packagingType: 'pallet',
       numberOfRatedItems: numberOfItems,
       options: {
