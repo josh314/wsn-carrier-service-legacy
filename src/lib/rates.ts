@@ -30,16 +30,16 @@ class Rate implements CarrierService.Rate {
     this.service_code = 'wholesaleninjas_shipping'; //TODO!
     this.currency = 'USD';
 
-    console.log('boxRateShippingItems:')
-    console.log(boxRateShippingItems)
+    console.log('boxRateShippingItems:');
+    console.log(boxRateShippingItems);
 
     const unweighedShippingItems = boxRateShippingItems.filter( _ => !_.weight );
     let weighedShippingItems = boxRateShippingItems.filter( _ => _.weight );
-    console.log('unweighedShippingItems:')
-    console.log(unweighedShippingItems)
+    console.log('unweighedShippingItems:');
+    console.log(unweighedShippingItems);
     weighedShippingItems = weighedShippingItems.concat( unweighedShippingItems.map( _ => Object.assign( _, { weight: 40 } ) )  );
-    console.log('weighedShippingItems:')
-    console.log(weighedShippingItems)
+    console.log('weighedShippingItems:');
+    console.log(weighedShippingItems);
     const totalBoxWeight = weighedShippingItems.reduce( (totalWeight, box ) => totalWeight + box.weight , 0 );
 
 
