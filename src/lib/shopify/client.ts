@@ -10,11 +10,18 @@ interface ClientAuthOpts {
 	readonly accessToken: string,
 }
 
+export type ProductVariantId = number;
+
+export type TableRate = number;
+
+export type RateTable = Map<ProductVariantId, TableRate>;
+
 /*****************************
  * GraphQl request strings
  * 
  ****************************/
 const gqlQueries = {
+
   getProductData: (productVariantGraphQlIds: Array<string>): string => {
     return `
       {${productVariantGraphQlIds.map((gid,idx)=>`
@@ -38,6 +45,19 @@ const gqlQueries = {
         }`).join('')}}
     `;
   },
+
+  getRateTable: (): string => {
+    return `
+      {
+        shop {
+          metafield(namespace:"wsn_shipping", key:"rate_table") {
+            value
+          }
+        }
+      }
+    `;
+  },
+
 };
 
 const productVariantId2Gid = (pvid: number | string): string => `${pvid}`.search('gid://shopify/ProductVariant/') < 0 ? `gid://shopify/ProductVariant/${pvid}` : pvid.toString();
@@ -105,4 +125,20 @@ export class Client {
     return products;
 
   }
+
+  async getRateTable(): Promise< RateTable > {
+    
+    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+      gqlQuery: gqlQueries.getRateTable(),
+    });
+
+    const data = JSON.parse( shopifyResp.data.shop.metafield.value );
+
+    // convert data into correct form for RateTable
+    const rateTable: RateTable = new Map( data.map( (_: { variant_id: number, rate: TableRate }) => [ _.variant_id, _.rate ]) );
+
+    return rateTable;
+
+  }
+
 }

@@ -24,7 +24,7 @@ interface GraphQlThrottleStatus {
 }
 type GraphQlResponseData = GraphQlData | GraphQlMultiData;
 
-type GraphQlData = object;
+type GraphQlData = any;
 
 type GraphQlMultiData = object;
 

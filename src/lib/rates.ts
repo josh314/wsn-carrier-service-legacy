@@ -1,14 +1,6 @@
 import * as shopify from 'shopify/client';
 import { ZoneRateProvider } from 'zone-rates';
-import { UpsRateProvider } from 'ups/rate-provider';
-
-const CANONICAL_DESTINATION: CarrierService.Contact = {
-  address1: '4604 FESSENEVA CT',
-  city: 'Naperville',
-  province: 'IL',
-  postal_code: '60564-5835',
-  country: 'US'
-};
+import { TableRateProvider } from 'table-rates';
 
 
 /*********************************************
@@ -76,13 +68,6 @@ const shopifyClient: shopify.Client = new shopify.Client({
 });
 
 const zoneRateProvider: CarrierService.RateProvider = new ZoneRateProvider();
-const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider({
-  accountNumber: process.env.UPS_ACCOUNT_NUMBER!,
-  accessLicenseNumber: process.env.UPS_ACCESS_KEY!,
-  user: process.env.UPS_USER!,
-  password: process.env.UPS_PASSWORD!,
-  development: process.env.NODE_ENV === 'development'
-});
 
 /**********************************************
  * Functions
@@ -99,7 +84,7 @@ const attachProductToItem = ( products: Array<Shopify.Product> ) => {
   };
 };
 
-const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem ): Array<CarrierService.ShippingItem> => {
+const getOrderItemShippingItems = (rateEachShippingItem: boolean ) => ( orderItem: CarrierService.DressedOrderItem ): Array<CarrierService.ShippingItem> => {
 
   const product: Shopify.Product = orderItem.shopifyProduct;
   if(!product) {
@@ -116,18 +101,30 @@ const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem )
     length: 0,
     lengthUnits: 'inches',
     width: 0,
-    widthUnits: 'inches'
+    widthUnits: 'inches',
+    shopifyProduct: product
   };
 
   let shippingItems: Array<CarrierService.ShippingItem>;
   if( product.shippingItems && product.shippingItems.length > 0 ) {
     shippingItems = [];
-    product.shippingItems.forEach( productShippingItem => {
-      for(let i=0; i<orderItem.quantity; i++) {
-        const newCarrierServiceShippingItem: CarrierService.ShippingItem = Object.assign( {} , baseShippingItem, productShippingItem );        
+
+    for(let i=0; i<orderItem.quantity; i++) {
+
+      product.shippingItems.forEach( (productShippingItem, idx) => {
+
+        const newCarrierServiceShippingItem: CarrierService.ShippingItem = Object.assign( {} , baseShippingItem, productShippingItem );
+
+        if( !rateEachShippingItem && idx !== 0 ) {
+          newCarrierServiceShippingItem.doNotRate = true;
+        }
+
         shippingItems.push(newCarrierServiceShippingItem);
-      }
-    });
+
+      });
+
+    }
+
   }
   else {
     const num = product.numBoxes ? product.numBoxes * orderItem.quantity : orderItem.quantity;
@@ -138,8 +135,8 @@ const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem )
   return shippingItems;
 };
 
-const getAllShippingItems = ( dressedOrderItems: Array<CarrierService.DressedOrderItem> ): Array<CarrierService.ShippingItem> => {
-  const orderItemsShippingItems: Array< Array<CarrierService.ShippingItem> > = dressedOrderItems.map(getOrderItemShippingItems);
+const getAllShippingItems = ( dressedOrderItems: Array<CarrierService.DressedOrderItem>, rateEachShippingItem: boolean = true ): Array<CarrierService.ShippingItem> => {
+  const orderItemsShippingItems: Array< Array<CarrierService.ShippingItem> > = dressedOrderItems.map( getOrderItemShippingItems(rateEachShippingItem) );
 
   return orderItemsShippingItems.reduce( ( allShippingItems: Array<CarrierService.ShippingItem> , singleOrderShippingItems: Array<CarrierService.ShippingItem>): Array<CarrierService.ShippingItem> => {
     return allShippingItems.concat(singleOrderShippingItems);
@@ -161,7 +158,7 @@ const cmpRateProviderRates = ( a: CarrierService.RateProviderRate, b: CarrierSer
 /*********************************************
 * Main
 * 
-*********/
+*********/ 
 export async function computeRates(opts: CarrierService.ComputeRateOptions): Promise< Array<Rate> > {
   const productVariantIds: Array<number> = opts.orderItems.map( x => x.variant_id ).filter(x=>x);
   const products: Array<Shopify.Product> = await shopifyClient.getProductData(productVariantIds);
@@ -172,55 +169,60 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     console.log( JSON.stringify(products, null, 2) );
   }
 
+  const rateTable: shopify.RateTable = await shopifyClient.getRateTable();
+  const tableRateProvider = new TableRateProvider( rateTable );
+
   const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
-  const shippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems(dressedOrderItems);
+  const tableRateDressedOrderItems = dressedOrderItems.filter( _ => tableRateProvider.getTableRate( _.shopifyProduct.variantId ) );
+  const nonTableRateDressedOrderItems = dressedOrderItems.filter( _ => !tableRateProvider.getTableRate( _.shopifyProduct.variantId ) );
+
+  const tableRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( tableRateDressedOrderItems, false );
+  const nonTableRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( nonTableRateDressedOrderItems );
 
   const palletShippingItems: Array<CarrierService.ShippingItem> = [];
   const zoneRateShippingItems: Array<CarrierService.ShippingItem> = [];
-  const upsShippingItems: Array<CarrierService.ShippingItem> = [];
 
-  shippingItems.forEach( item => {
+  nonTableRateShippingItems.forEach( item => {
+
     if ( item.packagingType === 'pallet' ) {
       palletShippingItems.push( item );
     }
-    else if ( !item.weight ) {
+    else {
       zoneRateShippingItems.push( item );
     }
-    else {
-      upsShippingItems.push( item );
-    }
+
   });
 
   if(process.env.DEBUG) {
     console.log('\n');
-    console.log('Shipping Items:');
-    console.log( JSON.stringify(shippingItems, null, 2) );
+    console.log('Table Rate Shipping Items:');
+    console.log( JSON.stringify(tableRateShippingItems, null, 2) );
 
     console.log('Zone Rate Shipping Items:');
     console.log( JSON.stringify(zoneRateShippingItems, null, 2) );
 
     console.log('Pallet Shipping Items:');
     console.log( JSON.stringify(palletShippingItems, null, 2) );
-
-    console.log('UPS Shipping Items:');
-    console.log( JSON.stringify(upsShippingItems, null, 2) );
   }
 
-  // request all Rates simultaneously
+  // request all Rates simultaneously ( and join with the Table rates )
   const [
+    boxLotTableRates,
     boxLotZoneRates,
-    palletRates,
-    boxLotUpsRates
+    palletRates
   ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
+    tableRateProvider.getBoxRates( tableRateShippingItems, opts.destination ),
     zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
-    zoneRateProvider.getPalletRates( palletShippingItems, opts.destination),
-    upsRateProvider.getBoxRates( upsShippingItems, CANONICAL_DESTINATION )
+    zoneRateProvider.getPalletRates( palletShippingItems, opts.destination)
   ]);
 
   //sort rates
+  boxLotTableRates.sort(cmpRateProviderRates);
   boxLotZoneRates.sort(cmpRateProviderRates);
   palletRates.sort(cmpRateProviderRates);
-  boxLotUpsRates.sort(cmpRateProviderRates);
+
+  console.log('Box Lot Table Rates:');
+  console.log( JSON.stringify(boxLotTableRates, null, 2) );
 
   console.log('Box Lot Zone Rates:');
   console.log( JSON.stringify(boxLotZoneRates, null, 2) );
@@ -228,18 +230,15 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   console.log('Pallet Rates:');
   console.log( JSON.stringify(palletRates, null, 2) );
 
-  console.log('Box Lot UPS rates:');
-  console.log( JSON.stringify(boxLotUpsRates, null, 2) );
-
-  const totalBoxRate: number = [ boxLotZoneRates[0], boxLotUpsRates[0] ].filter( _ => _ ).reduce( (total, rate) => total + rate.cost, 0);
+  const totalBoxRate: number = [ ...boxLotZoneRates, ...boxLotTableRates ].reduce( (total, rate) => total + rate.cost, 0);
 
   let rates: Array<Rate>;
 
   if( palletRates.length > 0 ) {
-    rates = palletRates.map( pr => new Rate(totalBoxRate, pr, zoneRateShippingItems.concat(upsShippingItems), palletShippingItems) );
+    rates = palletRates.map( pr => new Rate(totalBoxRate, pr, zoneRateShippingItems, palletShippingItems) );
   }
   else {
-    rates = [ new Rate(totalBoxRate, null, zoneRateShippingItems.concat(upsShippingItems), palletShippingItems) ];
+    rates = [ new Rate(totalBoxRate, null, [ ...zoneRateShippingItems, ...tableRateShippingItems], palletShippingItems) ];
   }
 
   return rates;

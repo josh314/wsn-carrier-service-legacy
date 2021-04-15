@@ -101,6 +101,12 @@ export interface ShippingItem {
   lengthUnits: DimensionUnits,
   width: number,
   widthUnits: DimensionUnits,
+  doNotRate?: boolean,
+  shopifyProduct?: Shopify.Product
+}
+
+export interface DressedShippingItem extends ShippingItem {
+  
 }
 
 export class RateProvider {
@@ -110,7 +116,7 @@ export class RateProvider {
 
 
 export interface RateProviderRate {
-  provider: 'ZONE' | 'UPS' | 'FREIGHT_QUOTE',
+  provider: 'ZONE' | 'TABLE' | 'UPS' | 'FREIGHT_QUOTE',
   cost: number,
   packagingType: PackagingType,
   numberOfRatedItems: number,
