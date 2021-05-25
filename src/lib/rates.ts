@@ -1,6 +1,8 @@
 import * as shopify from 'shopify/client';
+import { FreeRateProvider } from 'Free-rates';
 import { ZoneRateProvider } from 'zone-rates';
 import { UpsRateProvider } from 'ups/rate-provider';
+
 
 const CANONICAL_DESTINATION: CarrierService.Contact = {
   address1: '4604 FESSENEVA CT',
@@ -30,16 +32,16 @@ class Rate implements CarrierService.Rate {
     this.service_code = 'wholesaleninjas_shipping'; //TODO!
     this.currency = 'USD';
 
-    console.log('boxRateShippingItems:')
-    console.log(boxRateShippingItems)
+    console.log('boxRateShippingItems:');
+    console.log(boxRateShippingItems);
 
     const unweighedShippingItems = boxRateShippingItems.filter( _ => !_.weight );
     let weighedShippingItems = boxRateShippingItems.filter( _ => _.weight );
-    console.log('unweighedShippingItems:')
-    console.log(unweighedShippingItems)
+    console.log('unweighedShippingItems:');
+    console.log(unweighedShippingItems);
     weighedShippingItems = weighedShippingItems.concat( unweighedShippingItems.map( _ => Object.assign( _, { weight: 40 } ) )  );
-    console.log('weighedShippingItems:')
-    console.log(weighedShippingItems)
+    console.log('weighedShippingItems:');
+    console.log(weighedShippingItems);
     const totalBoxWeight = weighedShippingItems.reduce( (totalWeight, box ) => totalWeight + box.weight , 0 );
 
 
@@ -84,6 +86,8 @@ const upsRateProvider: CarrierService.RateProvider = new UpsRateProvider({
   development: process.env.NODE_ENV === 'development'
 });
 
+const freeRateProvider = new FreeRateProvider();
+
 /**********************************************
  * Functions
  * 
@@ -116,7 +120,8 @@ const getOrderItemShippingItems = ( orderItem: CarrierService.DressedOrderItem )
     length: 0,
     lengthUnits: 'inches',
     width: 0,
-    widthUnits: 'inches'
+    widthUnits: 'inches',
+    shopifyProduct: product
   };
 
   let shippingItems: Array<CarrierService.ShippingItem>;
@@ -175,12 +180,16 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
   const shippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems(dressedOrderItems);
 
+  const freeShippingItems: Array<CarrierService.ShippingItem> = [];
   const palletShippingItems: Array<CarrierService.ShippingItem> = [];
   const zoneRateShippingItems: Array<CarrierService.ShippingItem> = [];
   const upsShippingItems: Array<CarrierService.ShippingItem> = [];
 
   shippingItems.forEach( item => {
-    if ( item.packagingType === 'pallet' ) {
+    if( freeRateProvider.hasPromotion( item ) ) {
+      freeShippingItems.push( item );
+    }
+    else if ( item.packagingType === 'pallet' ) {
       palletShippingItems.push( item );
     }
     else if ( !item.weight ) {
@@ -196,6 +205,9 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     console.log('Shipping Items:');
     console.log( JSON.stringify(shippingItems, null, 2) );
 
+    console.log('Free Shipping Items:');
+    console.log( JSON.stringify(freeShippingItems, null, 2) );
+
     console.log('Zone Rate Shipping Items:');
     console.log( JSON.stringify(zoneRateShippingItems, null, 2) );
 
@@ -208,10 +220,12 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
 
   // request all Rates simultaneously
   const [
+    freeShippingRates,
     boxLotZoneRates,
     palletRates,
     boxLotUpsRates
   ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
+    freeRateProvider.getBoxRates( freeShippingItems, opts.destination ),
     zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
     zoneRateProvider.getPalletRates( palletShippingItems, opts.destination),
     upsRateProvider.getBoxRates( upsShippingItems, CANONICAL_DESTINATION )
@@ -221,6 +235,10 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   boxLotZoneRates.sort(cmpRateProviderRates);
   palletRates.sort(cmpRateProviderRates);
   boxLotUpsRates.sort(cmpRateProviderRates);
+
+
+  console.log('Free Shipping Rates:');
+  console.log( JSON.stringify(freeShippingRates, null, 2) );
 
   console.log('Box Lot Zone Rates:');
   console.log( JSON.stringify(boxLotZoneRates, null, 2) );
@@ -236,10 +254,10 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   let rates: Array<Rate>;
 
   if( palletRates.length > 0 ) {
-    rates = palletRates.map( pr => new Rate(totalBoxRate, pr, zoneRateShippingItems.concat(upsShippingItems), palletShippingItems) );
+    rates = palletRates.map( pr => new Rate(totalBoxRate, pr, zoneRateShippingItems.concat(upsShippingItems).concat( freeShippingItems ), palletShippingItems) );
   }
   else {
-    rates = [ new Rate(totalBoxRate, null, zoneRateShippingItems.concat(upsShippingItems), palletShippingItems) ];
+    rates = [ new Rate(totalBoxRate, null, zoneRateShippingItems.concat(upsShippingItems).concat( freeShippingItems ), palletShippingItems) ];
   }
 
   return rates;
