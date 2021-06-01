@@ -1,5 +1,5 @@
 import * as shopify from 'shopify/client';
-import { FreeRateProvider } from 'Free-rates';
+import { FreeRateProvider } from 'free-rates';
 import { ZoneRateProvider } from 'zone-rates';
 import { UpsRateProvider } from 'ups/rate-provider';
 
