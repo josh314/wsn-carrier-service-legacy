@@ -82,8 +82,6 @@ export class Product {
   
   public shipsByFreight(): boolean;
 
-  public isTagged( s: string ): boolean;
-
 }
 
 export as namespace Shopify;
