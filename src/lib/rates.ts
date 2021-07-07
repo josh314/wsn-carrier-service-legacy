@@ -30,16 +30,16 @@ class Rate implements CarrierService.Rate {
     this.service_code = 'wholesaleninjas_shipping'; //TODO!
     this.currency = 'USD';
 
-    console.log('boxRateShippingItems:')
-    console.log(boxRateShippingItems)
+    console.log('boxRateShippingItems:');
+    console.log(boxRateShippingItems);
 
     const unweighedShippingItems = boxRateShippingItems.filter( _ => !_.weight );
     let weighedShippingItems = boxRateShippingItems.filter( _ => _.weight );
-    console.log('unweighedShippingItems:')
-    console.log(unweighedShippingItems)
+    console.log('unweighedShippingItems:');
+    console.log(unweighedShippingItems);
     weighedShippingItems = weighedShippingItems.concat( unweighedShippingItems.map( _ => Object.assign( _, { weight: 40 } ) )  );
-    console.log('weighedShippingItems:')
-    console.log(weighedShippingItems)
+    console.log('weighedShippingItems:');
+    console.log(weighedShippingItems);
     const totalBoxWeight = weighedShippingItems.reduce( (totalWeight, box ) => totalWeight + box.weight , 0 );
 
 
@@ -56,7 +56,7 @@ class Rate implements CarrierService.Rate {
     }
     else {
       this.service_name = 'Freight Shipping';
-      this.description = `Your ${palletRateShippingItems.length > 1 ? `${palletRateShippingItems.length} pallets`: 'pallet'} will be shipped via freight & other items shipped separately via ground.`;
+      this.description = `Your order contains at least one item that requires freight shipping. You will be contacted by the carrier to arrange a delivery window. Other items shipped separately via standard ground.`;
       cost = boxRate + palletRate.cost;
     }
 
