@@ -1,7 +1,7 @@
 
 /***********************************************
  * Types
- * 
+ *
  *******/
 
 interface FreeRateProviderRate extends CarrierService.RateProviderRate {
@@ -10,12 +10,12 @@ interface FreeRateProviderRate extends CarrierService.RateProviderRate {
 
 /**********************************************************
  * RateProvider
- * 
+ *
  **************/
 
 export class FreeRateProvider implements CarrierService.RateProvider {
   public async getBoxRates( shippingItems: Array<CarrierService.ShippingItem>, _destination: CarrierService.Contact ): Promise< FreeRateProviderRate[] > {
-    
+
     return this.getRates( 'package', shippingItems );
 
   }
@@ -33,14 +33,14 @@ export class FreeRateProvider implements CarrierService.RateProvider {
         provider: 'PROMO',
         cost: 0,
         options: {
-          isFreight: false
+          isFreight: false //TODO: there should be some logic here instead of just setting false
         },
         packagingType: packagingType,
         numberOfRatedItems: shippingItems.length
       });
 
     }
-  
+
     return rates;
   }
 
@@ -53,11 +53,11 @@ export class FreeRateProvider implements CarrierService.RateProvider {
     }
 
 
-    if( shippingItem.shopifyProduct.isTagged( 'cosmetics' ) || shippingItem.shopifyProduct.isTagged( 'personal care' ) ) {
+    // if( shippingItem.shopifyProduct.isTagged( 'cosmetics' ) || shippingItem.shopifyProduct.isTagged( 'personal care' ) ) {
 
-      return true;
+    //   return true;
 
-    }
+    // }
 
     return false;
   }
