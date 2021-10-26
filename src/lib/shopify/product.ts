@@ -80,5 +80,9 @@ export class Product implements Shopify.Product {
     }
   }
 
+  public isTagged( s: string ): boolean {
+    return this.tags.some( t => t.match( new RegExp( `${s}?`, 'i') ) );
+  }
+
 }
 

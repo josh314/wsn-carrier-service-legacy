@@ -105,10 +105,6 @@ export interface ShippingItem {
   shopifyProduct?: Shopify.Product
 }
 
-export interface DressedShippingItem extends ShippingItem {
-  
-}
-
 export class RateProvider {
   public getBoxRates( shippingItems: Array<ShippingItem>, destination: Contact ): Promise< Array<RateProviderRate> >;
   public getPalletRates( palletItems: Array<ShippingItem>, destination: Contact ): Promise< Array<RateProviderRate> >;
@@ -116,7 +112,7 @@ export class RateProvider {
 
 
 export interface RateProviderRate {
-  provider: 'ZONE' | 'TABLE' | 'UPS' | 'FREIGHT_QUOTE',
+  provider: 'PROMO' | 'ZONE' | 'TABLE' | 'UPS' | 'FREIGHT_QUOTE',
   cost: number,
   packagingType: PackagingType,
   numberOfRatedItems: number,

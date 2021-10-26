@@ -1,4 +1,5 @@
 import * as shopify from 'shopify/client';
+import { FreeRateProvider } from 'free-rates';
 import { ZoneRateProvider } from 'zone-rates';
 import { TableRateProvider } from 'table-rates';
 
@@ -48,7 +49,7 @@ class Rate implements CarrierService.Rate {
     }
     else {
       this.service_name = 'Freight Shipping';
-      this.description = `Your ${palletRateShippingItems.length > 1 ? `${palletRateShippingItems.length} pallets`: 'pallet'} will be shipped via freight & other items shipped separately via ground.`;
+      this.description = `Your order contains at least one item that requires freight shipping. You will be contacted by the carrier to arrange a delivery window. Other items shipped separately via standard ground.`;
       cost = boxRate + palletRate.cost;
     }
 
@@ -68,6 +69,8 @@ const shopifyClient: shopify.Client = new shopify.Client({
 });
 
 const zoneRateProvider: CarrierService.RateProvider = new ZoneRateProvider();
+
+const freeRateProvider = new FreeRateProvider();
 
 /**********************************************
  * Functions
@@ -179,12 +182,17 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   const tableRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( tableRateDressedOrderItems, false );
   const nonTableRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( nonTableRateDressedOrderItems );
 
+  const freeShippingItems: Array<CarrierService.ShippingItem> = [];
   const palletShippingItems: Array<CarrierService.ShippingItem> = [];
   const zoneRateShippingItems: Array<CarrierService.ShippingItem> = [];
 
+
   nonTableRateShippingItems.forEach( item => {
 
-    if ( item.packagingType === 'pallet' ) {
+    if( freeRateProvider.hasPromotion( item ) ) {
+      freeShippingItems.push( item );
+    }
+    else if ( item.packagingType === 'pallet' ) {
       palletShippingItems.push( item );
     }
     else {
@@ -198,6 +206,9 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     console.log('Table Rate Shipping Items:');
     console.log( JSON.stringify(tableRateShippingItems, null, 2) );
 
+    console.log('Free Shipping Items:');
+    console.log( JSON.stringify(freeShippingItems, null, 2) );
+
     console.log('Zone Rate Shipping Items:');
     console.log( JSON.stringify(zoneRateShippingItems, null, 2) );
 
@@ -208,10 +219,12 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   // request all Rates simultaneously ( and join with the Table rates )
   const [
     boxLotTableRates,
+    freeShippingRates,
     boxLotZoneRates,
     palletRates
   ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
     tableRateProvider.getBoxRates( tableRateShippingItems, opts.destination ),
+    freeRateProvider.getBoxRates( freeShippingItems, opts.destination ),
     zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
     zoneRateProvider.getPalletRates( palletShippingItems, opts.destination)
   ]);
@@ -224,6 +237,9 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   console.log('Box Lot Table Rates:');
   console.log( JSON.stringify(boxLotTableRates, null, 2) );
 
+  console.log('Free Shipping Rates:');
+  console.log( JSON.stringify(freeShippingRates, null, 2) );
+
   console.log('Box Lot Zone Rates:');
   console.log( JSON.stringify(boxLotZoneRates, null, 2) );
 
@@ -234,11 +250,13 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
 
   let rates: Array<Rate>;
 
+  const boxedShippingItems = tableRateShippingItems.concat( zoneRateShippingItems ).concat( freeShippingItems );
+
   if( palletRates.length > 0 ) {
-    rates = palletRates.map( pr => new Rate(totalBoxRate, pr, zoneRateShippingItems, palletShippingItems) );
+    rates = palletRates.map( pr => new Rate(totalBoxRate, pr, boxedShippingItems, palletShippingItems) );
   }
   else {
-    rates = [ new Rate(totalBoxRate, null, [ ...zoneRateShippingItems, ...tableRateShippingItems], palletShippingItems) ];
+    rates = [ new Rate(totalBoxRate, null, boxedShippingItems, palletShippingItems) ];
   }
 
   return rates;

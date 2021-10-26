@@ -162,9 +162,11 @@ function getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProv
 
     const zoneRate: ZoneRate = zoneRates[zone];
 
+    const cost = ( numberOfItems > 0 ) ? zoneRate.palletFreight.base + numberOfItems * zoneRate.palletFreight.per : 0;
+
     rate = {
       provider: 'ZONE',
-      cost: zoneRate.palletFreight.base + numberOfItems * zoneRate.palletFreight.per,
+      cost: cost,
       packagingType: 'pallet',
       numberOfRatedItems: numberOfItems,
       options: {
@@ -179,6 +181,34 @@ function getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProv
   }
 
   return rate;
+}
+
+function combineRates( r1: ZoneRateProviderRate, r2: ZoneRateProviderRate ): ZoneRateProviderRate {
+
+  if( r1.cost === 0 ) {
+    return r2;
+  }
+  else if ( r2.cost === 0 ) {
+    return r1;
+  }
+
+  if( r1.options.zone !== r1.options.zone ) {
+    throw new Error(`Cannot combine rates with different zones.`);
+  }
+
+  let rate: ZoneRateProviderRate = {
+    provider: 'ZONE',
+    cost: r1.cost + r2.cost,
+    packagingType: 'pallet',
+    numberOfRatedItems: r1.numberOfRatedItems + r2.numberOfRatedItems,
+    options: {
+      isFreight: r1.options.isFreight || r2.options.isFreight,
+      zone: r1.options.zone // Note: assuming r1 and r2 are same zone
+    }
+  };
+
+  return rate;
+
 }
 
 /**********************************************************
@@ -203,12 +233,18 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
 
     if(palletItems.length > 0) {
   
-      if(palletItems.every( i => !i.shipsByFreight )) {
-        palletRates.push( getPalletBreakdownRate( destination.province , palletItems.length ) );
-      }
-  
-      palletRates.push( getPalletFreightRate( destination.province , palletItems.length ) );
-  
+      const freightItems = [];
+      const breakdownItems = [];
+
+      palletItems.forEach( p => p.shipsByFreight? freightItems.push( p ) : breakdownItems.push( p ) );
+
+      const palletRate = combineRates(
+        getPalletBreakdownRate( destination.province , breakdownItems.length ) ,
+        getPalletFreightRate( destination.province , freightItems.length )
+      );
+
+      palletRates.push( palletRate );
+
     }
   
     return palletRates;

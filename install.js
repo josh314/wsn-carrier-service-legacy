@@ -33,6 +33,7 @@ const deploys = {
   "dev": "https://development--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
   "staging": "https://staging--determined-fermi-a96772.netlify.com/.netlify/functions/get-rate",
   "prod": "https://shipping-rates.wholesaleninjas.com/.netlify/functions/get-rate",
+  "promotion": "https://promo-2021-09-free-cosmetics-shipping--determined-fermi-a96772.netlify.app/.netlify/functions/get-rate"
 };
 
 let cmd;
