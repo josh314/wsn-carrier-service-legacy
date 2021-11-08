@@ -172,7 +172,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     console.log( JSON.stringify(products, null, 2) );
   }
 
-  const rateTable: shopify.RateTable = await shopifyClient.getRateTable();
+  const rateTable: shopify.RateTable = await shopifyClient.getRateTable2( productVariantIds );
   const tableRateProvider = new TableRateProvider( rateTable );
 
   const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));

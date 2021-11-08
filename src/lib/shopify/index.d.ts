@@ -58,6 +58,13 @@ interface GraphQlProductVariant {
   product: GraphQlProduct
 }
 
+interface GraphQlProductVariantRate {
+  id: string,
+  rate: null | {
+    value?: string
+  }
+}
+
 export type ShippingItem = Omit<CarrierService.ShippingItem, 'packagingType'>;
 
 

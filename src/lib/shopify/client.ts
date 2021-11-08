@@ -10,9 +10,9 @@ interface ClientAuthOpts {
 	readonly accessToken: string,
 }
 
-export type ProductVariantId = number;
+export type ProductVariantId = number | null;
 
-export type TableRate = number;
+export type TableRate = number | null;
 
 export type RateTable = Map<ProductVariantId, TableRate>;
 
@@ -58,12 +58,49 @@ const gqlQueries = {
     `;
   },
 
+  getProductVariantRates: ( productVariantGraphQlIds: Array<string> ): string => {
+    return `
+      {${productVariantGraphQlIds.map((gid,idx)=>`
+        _${idx}: productVariant(id: "${gid}") {
+          id
+          rate: metafield(namespace:"wsn_shipping", key:"flat_rate") {
+            value
+          }
+        }`).join('')}}
+    `;
+  },
+
 };
 
 const productVariantId2Gid = (pvid: number | string): string => `${pvid}`.search('gid://shopify/ProductVariant/') < 0 ? `gid://shopify/ProductVariant/${pvid}` : pvid.toString();
 
-function arrayifyGqlMultiData(gqlMultiData: Shopify.GraphQlMultiData): Array<Shopify.GraphQlProductVariant> {
-  return Object.entries(gqlMultiData).map( x => x[1] );
+const productVariantGid2Id = ( pvid: number | string ): ProductVariantId => {
+
+  if( typeof pvid === 'number' ) {
+    return pvid;
+  }
+  else {
+    const p = /gid:\/\/shopify\/ProductVariant\/([0-9]*)/;
+    const m = pvid.match(p);
+    if( m && m[1] ) {
+      return parseInt(m[1]);
+    }
+  }
+
+  return null;
+};
+
+function arrayifyGqlMultiData(gqlMultiData: Shopify.GraphQlMultiData): Array<any> {
+  return Object.entries(gqlMultiData).map( x => x[1] ).filter( _ => _ );
+}
+
+function graphQlProductVariantRate2RateTableEntry( graphQlProductVariantRateResponse: Shopify.GraphQlProductVariantRate ): [ ProductVariantId, TableRate ] {
+
+  return [
+    productVariantGid2Id( graphQlProductVariantRateResponse.id ),
+    graphQlProductVariantRateResponse.rate && graphQlProductVariantRateResponse.rate.value ? parseFloat(graphQlProductVariantRateResponse.rate.value) : null
+  ];
+
 }
 
 /*****************************************
@@ -136,6 +173,20 @@ export class Client {
 
     // convert data into correct form for RateTable
     const rateTable: RateTable = new Map( data.map( (_: { variant_id: number, rate: TableRate }) => [ _.variant_id, _.rate ]) );
+
+    return rateTable;
+
+  }
+
+  async getRateTable2( productVariantIds: Array<number> ): Promise< RateTable > {
+
+    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+      gqlQuery: gqlQueries.getProductVariantRates( productVariantIds.map(productVariantId2Gid) ),
+    });
+
+    // convert data into correct form for RateTable
+    const tableEntries = arrayifyGqlMultiData( shopifyResp.data ).filter( _ => _ && _.id && _.rate /* filter out nulls */ ).map( graphQlProductVariantRate2RateTableEntry );
+    const rateTable: RateTable = new Map( tableEntries );
 
     return rateTable;
 
