@@ -176,8 +176,20 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   const tableRateProvider = new TableRateProvider( rateTable );
 
   const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
-  const tableRateDressedOrderItems = dressedOrderItems.filter( _ => tableRateProvider.getTableRate( _.shopifyProduct.variantId ) );
-  const nonTableRateDressedOrderItems = dressedOrderItems.filter( _ => !tableRateProvider.getTableRate( _.shopifyProduct.variantId ) );
+
+  const dressedOrderItemHasValidTableRate = ( dressedOrderItem : CarrierService.DressedOrderItem ) : boolean => {
+
+    if( dressedOrderItem.shopifyProduct && dressedOrderItem.shopifyProduct.variantId ) {
+
+      let tableRate = tableRateProvider.getTableRate( dressedOrderItem.shopifyProduct.variantId );
+      return typeof tableRate === 'number';
+    }
+    else {
+      return false;
+    }
+  };
+  const tableRateDressedOrderItems = dressedOrderItems.filter( dressedOrderItemHasValidTableRate );
+  const nonTableRateDressedOrderItems = dressedOrderItems.filter( _ => !dressedOrderItemHasValidTableRate(_) );
 
   const tableRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( tableRateDressedOrderItems, false );
   const nonTableRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( nonTableRateDressedOrderItems );

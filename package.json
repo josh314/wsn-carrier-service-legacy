@@ -9,7 +9,7 @@
     "dev-server": "webpack-dev-server --open --config webpack.config.js",
     "lambda-build": "netlify-lambda build --config webpack.functions.js src/functions",
     "lambda-serve": "netlify-lambda serve --config webpack.functions.js src/functions",
-    "ngrok": "ngrok http 8080 --subdomain=josh-wsn -host-header=localhost:8080",
+    "ngrok": "ngrok http 9001 --subdomain=josh-wsn -host-header=localhost:9001",
     "start": "bash deploy-local.sh"
   },
   "repository": {
