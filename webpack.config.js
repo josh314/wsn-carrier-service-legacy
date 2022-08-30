@@ -33,10 +33,10 @@ module.exports = {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
     historyApiFallback: true,
-    port: 9001,
+    port: 6001,
     proxy: {
       '/.netlify': {
-        target: 'http://localhost:9000',
+        target: 'http://localhost:6000',
         pathRewrite: { '^/.netlify/functions': '' }
       }
     },
