@@ -68,24 +68,6 @@ interface ZoneRate {
     per: number
   },
 }
-const zoneRates: Array<ZoneRate> = [
-  {
-    boxLot: 30,
-    palletBreakdown: 180,
-    palletFreight: {
-      base: 160, 
-      per: 80
-    }
-  },
-  {
-    boxLot: 30,
-    palletBreakdown: 180,
-    palletFreight: {
-      base: 260,
-      per: 100
-    }
-  },
-];
 
 export interface ZoneRateOptions extends CarrierService.RateOptions {
   zone: Zone
@@ -96,120 +78,6 @@ export interface ZoneRateProviderRate extends CarrierService.RateProviderRate {
   options: ZoneRateOptions,
 }
 
-/****************************************************
- * Exported rate functions
- * 
- ***************************************************/
-
-function getBoxRateForState(state: State, numberOfItems: number): ZoneRateProviderRate {
-
-  let zone: Zone | undefined = stateZones.get(state);
-  let rate: ZoneRateProviderRate;
-
-  if(typeof zone !== 'undefined') {
-
-    rate = {
-      provider: 'ZONE',
-      cost: zoneRates[zone].boxLot * numberOfItems,
-      packagingType: 'package',
-      numberOfRatedItems: numberOfItems,
-      options: {
-        isFreight: false,
-        zone: zone
-      }
-    };
-
-  }
-  else {
-    throw new Error(`Zone rate not found for state ${state}.`);
-  }
-
-  return rate;
-}
-
-function getPalletBreakdownRate(state: State, numberOfItems: number): ZoneRateProviderRate {
-  
-  let zone: Zone | undefined = stateZones.get(state);
-  let rate: ZoneRateProviderRate;
-
-  if(typeof zone !== 'undefined') {
-
-    rate = {
-      provider: 'ZONE',
-      cost: zoneRates[zone].palletBreakdown * numberOfItems,
-      packagingType: 'pallet',
-      numberOfRatedItems: numberOfItems,
-      options: {
-        isFreight: false,
-        zone: zone
-      }
-    };
-
-  }
-  else {
-    throw new Error(`Zone rate not found for state ${state}.`);
-  }
-
-  return rate;
-}
-
-function getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProviderRate {
-  
-  let zone: Zone | undefined = stateZones.get(state);
-  let rate: ZoneRateProviderRate;
-
-  if(typeof zone !== 'undefined') {
-
-    const zoneRate: ZoneRate = zoneRates[zone];
-
-    const cost = ( numberOfItems > 0 ) ? zoneRate.palletFreight.base + numberOfItems * zoneRate.palletFreight.per : 0;
-
-    rate = {
-      provider: 'ZONE',
-      cost: cost,
-      packagingType: 'pallet',
-      numberOfRatedItems: numberOfItems,
-      options: {
-        isFreight: true,
-        zone: zone
-      }
-    };
-
-  }
-  else {
-    throw new Error(`Zone rate not found for state ${state}.`);
-  }
-
-  return rate;
-}
-
-function combineRates( r1: ZoneRateProviderRate, r2: ZoneRateProviderRate ): ZoneRateProviderRate {
-
-  if( r1.cost === 0 ) {
-    return r2;
-  }
-  else if ( r2.cost === 0 ) {
-    return r1;
-  }
-
-  if( r1.options.zone !== r1.options.zone ) {
-    throw new Error(`Cannot combine rates with different zones.`);
-  }
-
-  let rate: ZoneRateProviderRate = {
-    provider: 'ZONE',
-    cost: r1.cost + r2.cost,
-    packagingType: 'pallet',
-    numberOfRatedItems: r1.numberOfRatedItems + r2.numberOfRatedItems,
-    options: {
-      isFreight: r1.options.isFreight || r2.options.isFreight,
-      zone: r1.options.zone // Note: assuming r1 and r2 are same zone
-    }
-  };
-
-  return rate;
-
-}
 
 /**********************************************************
  * RateProvider
@@ -217,11 +85,141 @@ function combineRates( r1: ZoneRateProviderRate, r2: ZoneRateProviderRate ): Zon
  **************/
 
 export class ZoneRateProvider implements CarrierService.RateProvider {
+
+  zoneRates: Array<ZoneRate>;
+
+  constructor( palletBreakdownServiceRateValue: number ) {
+
+    this.zoneRates = [
+      {
+        boxLot: 30,
+        palletBreakdown: palletBreakdownServiceRateValue,
+        palletFreight: {
+          base: 160, 
+          per: 80
+        }
+      },
+      {
+        boxLot: 30,
+        palletBreakdown: palletBreakdownServiceRateValue,
+        palletFreight: {
+          base: 260,
+          per: 100
+        }
+      },
+    ];
+
+  }
+
+
+  private getBoxRateForState(state: State, numberOfItems: number): ZoneRateProviderRate {
+
+    let zone: Zone | undefined = stateZones.get(state);
+    let rate: ZoneRateProviderRate;
+
+    if(typeof zone !== 'undefined') {
+
+      rate = {
+        provider: 'ZONE',
+        cost: this.zoneRates[zone].boxLot * numberOfItems,
+        packagingType: 'package',
+        numberOfRatedItems: numberOfItems,
+        options: {
+          isFreight: false,
+          zone: zone
+        }
+      };
+
+    }
+    else {
+      throw new Error(`Zone rate not found for state ${state}.`);
+    }
+
+    return rate;
+  }
+
+  private getPalletBreakdownRate(state: State, numberOfItems: number): ZoneRateProviderRate {
+    
+    let zone: Zone | undefined = stateZones.get(state);
+    let rate: ZoneRateProviderRate;
+
+    if(typeof zone !== 'undefined') {
+
+      rate = {
+        provider: 'ZONE',
+        cost: this.zoneRates[zone].palletBreakdown * numberOfItems,
+        packagingType: 'pallet',
+        numberOfRatedItems: numberOfItems,
+        options: {
+          isFreight: false,
+          zone: zone
+        }
+      };
+
+    }
+    else {
+      throw new Error(`Zone rate not found for state ${state}.`);
+    }
+
+    return rate;
+  }
+
+  private getPalletFreightRate(state: State, numberOfItems: number): ZoneRateProviderRate {
+    
+    let zone: Zone | undefined = stateZones.get(state);
+    let rate: ZoneRateProviderRate;
+
+    if(typeof zone !== 'undefined') {
+
+      const zoneRate: ZoneRate = this.zoneRates[zone];
+
+      const cost = ( numberOfItems > 0 ) ? zoneRate.palletFreight.base + numberOfItems * zoneRate.palletFreight.per : 0;
+
+      rate = {
+        provider: 'ZONE',
+        cost: cost,
+        packagingType: 'pallet',
+        numberOfRatedItems: numberOfItems,
+        options: {
+          isFreight: true,
+          zone: zone
+        }
+      };
+
+    }
+    else {
+      throw new Error(`Zone rate not found for state ${state}.`);
+    }
+
+    return rate;
+  }
+
+  private combineRates( r1: ZoneRateProviderRate, r2: ZoneRateProviderRate ): ZoneRateProviderRate {
+
+    if( r1.options.zone !== r1.options.zone ) {
+      throw new Error(`Cannot combine rates with different zones.`);
+    }
+
+    let rate: ZoneRateProviderRate = {
+      provider: 'ZONE',
+      cost: r1.cost + r2.cost,
+      packagingType: 'pallet',
+      numberOfRatedItems: r1.numberOfRatedItems + r2.numberOfRatedItems,
+      options: {
+        isFreight: r1.options.isFreight || r2.options.isFreight,
+        zone: r1.options.zone // Note: assuming r1 and r2 are same zone
+      }
+    };
+
+    return rate;
+
+  }
+
   public async getBoxRates( shippingItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< ZoneRateProviderRate[] > {
     const boxLotRates: ZoneRateProviderRate[] = [];
 
     if(shippingItems.length > 0) {
-      boxLotRates.push( getBoxRateForState( destination.province , shippingItems.length ) );
+      boxLotRates.push( this.getBoxRateForState( destination.province , shippingItems.length ) );
     }
 
     return boxLotRates;
@@ -236,12 +234,18 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
       const freightItems = [];
       const breakdownItems = [];
 
-      palletItems.forEach( p => p.shipsByFreight? freightItems.push( p ) : breakdownItems.push( p ) );
+      palletItems.forEach( p => p.shipsByFreight ? freightItems.push( p ) : breakdownItems.push( p ) );
 
-      const palletRate = combineRates(
-        getPalletBreakdownRate( destination.province , breakdownItems.length ) ,
-        getPalletFreightRate( destination.province , freightItems.length )
-      );
+      let palletRate: ZoneRateProviderRate;
+      if( freightItems.length > 0 ) {
+        palletRate = this.combineRates(
+          this.getPalletBreakdownRate( destination.province , breakdownItems.length ) ,
+          this.getPalletFreightRate( destination.province , freightItems.length )
+        );
+      }
+      else {
+        palletRate = this.getPalletBreakdownRate( destination.province , breakdownItems.length );
+      }
 
       palletRates.push( palletRate );
 

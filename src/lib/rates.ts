@@ -68,8 +68,6 @@ const shopifyClient: shopify.Client = new shopify.Client({
   accessToken: process.env.SHOPIFY_ACCESS_TOKEN!,
 });
 
-const zoneRateProvider: CarrierService.RateProvider = new ZoneRateProvider();
-
 const freeRateProvider = new FreeRateProvider();
 
 /**********************************************
@@ -175,6 +173,10 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   const rateTable: shopify.RateTable = await shopifyClient.getRateTable2( productVariantIds );
   const tableRateProvider = new TableRateProvider( rateTable );
 
+  const palletBreakdownServiceRateValue = await shopifyClient.getPalletBreakdownServiceRateValue();
+  const zoneRateProvider: CarrierService.RateProvider = new ZoneRateProvider( palletBreakdownServiceRateValue );
+  
+
   const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
 
   const dressedOrderItemHasValidTableRate = ( dressedOrderItem : CarrierService.DressedOrderItem ) : boolean => {
@@ -238,7 +240,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     tableRateProvider.getBoxRates( tableRateShippingItems, opts.destination ),
     freeRateProvider.getBoxRates( freeShippingItems, opts.destination ),
     zoneRateProvider.getBoxRates( zoneRateShippingItems, opts.destination ),
-    zoneRateProvider.getPalletRates( palletShippingItems, opts.destination)
+    zoneRateProvider.getPalletRates( palletShippingItems, opts.destination )
   ]);
 
   //sort rates

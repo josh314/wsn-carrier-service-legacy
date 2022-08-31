@@ -70,6 +70,18 @@ const gqlQueries = {
     `;
   },
 
+  getPalletBreakdownServiceRate: (): string => {
+    return `
+      {
+        shop {
+          metafield(namespace:"wsn_shipping", key:"palletBreakdownServiceRate") {
+            value
+          }
+        }
+      }
+    `;
+  },
+
 };
 
 const productVariantId2Gid = (pvid: number | string): string => `${pvid}`.search('gid://shopify/ProductVariant/') < 0 ? `gid://shopify/ProductVariant/${pvid}` : pvid.toString();
@@ -189,6 +201,19 @@ export class Client {
     const rateTable: RateTable = new Map( tableEntries );
 
     return rateTable;
+
+  }
+
+
+  async getPalletBreakdownServiceRateValue() {
+
+    const shopifyResp: Shopify.GraphQlResponse = await this.request({
+      gqlQuery: gqlQueries.getPalletBreakdownServiceRate(),
+    });
+
+    const rateValue: number = JSON.parse( shopifyResp.data.shop.metafield.value );
+
+    return rateValue;
 
   }
 

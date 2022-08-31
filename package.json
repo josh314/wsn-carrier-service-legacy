@@ -1,6 +1,6 @@
 {
   "name": "wsn-carrier-service",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Application for supplying shipping rates to Shopify based on custom business logic",
   "scripts": {
     "build-client": "webpack --config webpack.config.js",
