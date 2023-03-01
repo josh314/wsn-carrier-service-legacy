@@ -138,18 +138,18 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
     return rate;
   }
 
-  private getPalletBreakdownRate(state: State, numberOfItems: number): ZoneRateProviderRate {
-    
-    let zone: Zone | undefined = stateZones.get(state);
+  private getPalletBreakdownRate( state: State, palletItem: CarrierService.ShippingItem ): ZoneRateProviderRate {
+
+    let zone: Zone | undefined = stateZones.get( state );
     let rate: ZoneRateProviderRate;
 
     if(typeof zone !== 'undefined') {
 
       rate = {
         provider: 'ZONE',
-        cost: this.zoneRates[zone].palletBreakdown * numberOfItems,
+        cost: palletItem.doNotRate ? 0 : this.zoneRates[zone].palletBreakdown ,
         packagingType: 'pallet',
-        numberOfRatedItems: numberOfItems,
+        numberOfRatedItems: palletItem.doNotRate ? 0 : 1,
         options: {
           isFreight: false,
           zone: zone
@@ -229,28 +229,13 @@ export class ZoneRateProvider implements CarrierService.RateProvider {
   public async getPalletRates( palletItems: Array<CarrierService.ShippingItem>, destination: CarrierService.Contact ): Promise< ZoneRateProviderRate[] > {
     const palletRates: ZoneRateProviderRate[] = [];
 
-    if(palletItems.length > 0) {
+    const freightItems = palletItems.filter( p => p.shipsByFreight );
+    const palletBreakdownItems = palletItems.filter( p => !p.shipsByFreight );
   
-      const freightItems = [];
-      const breakdownItems = [];
-
-      palletItems.forEach( p => p.shipsByFreight ? freightItems.push( p ) : breakdownItems.push( p ) );
-
-      let palletRate: ZoneRateProviderRate;
-      if( freightItems.length > 0 ) {
-        palletRate = this.combineRates(
-          this.getPalletBreakdownRate( destination.province , breakdownItems.length ) ,
-          this.getPalletFreightRate( destination.province , freightItems.length )
-        );
-      }
-      else {
-        palletRate = this.getPalletBreakdownRate( destination.province , breakdownItems.length );
-      }
-
-      palletRates.push( palletRate );
-
+    if( freightItems.length > 0 ) {
+      palletRates.push( this.getPalletFreightRate( destination.province , freightItems.length ) );
     }
-  
-    return palletRates;
+
+    return palletRates.concat( palletBreakdownItems.map( _item => this.getPalletBreakdownRate( destination.province, _item ) ) );
   }
 }

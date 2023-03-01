@@ -36,7 +36,7 @@ export class FreeRateProvider implements CarrierService.RateProvider {
           isFreight: false //TODO: there should be some logic here instead of just setting false
         },
         packagingType: packagingType,
-        numberOfRatedItems: shippingItems.length
+        numberOfRatedItems: shippingItems.filter( _ => !_.doNotRate ).length // TODO: 
       });
 
     }
