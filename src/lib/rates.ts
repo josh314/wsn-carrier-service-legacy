@@ -201,13 +201,19 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
   const boxLotZoneRateDressedOrderItems = nonTableRateDressedOrderItems.filter( _ => !_.shopifyProduct.isPallet );
 
   const tableRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( tableRateDressedOrderItems, false );
+
+  const palletTableRateShippingItems = tableRateShippingItems.filter( _ => _.packagingType === 'pallet' );
+  const boxLotTableRateShippingItems = tableRateShippingItems.filter( _ => _.packagingType === 'package' );
   const palletZoneRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( palletZoneRateDressedOrderItems, false );
   const boxLotZoneRateShippingItems: Array<CarrierService.ShippingItem> = getAllShippingItems( boxLotZoneRateDressedOrderItems );
 
   if(process.env.DEBUG) {
     console.log('\n');
-    console.log('Table Rate Shipping Items:');
-    console.log( JSON.stringify(tableRateShippingItems, null, 2) );
+    console.log('Box Lot Table Rate Shipping Items:');
+    console.log( JSON.stringify(boxLotTableRateShippingItems, null, 2) );
+
+    console.log('Pallet Table Rate Shipping Items:');
+    console.log( JSON.stringify(palletTableRateShippingItems, null, 2) );
 
     console.log('Box Lot Zone Rate Shipping Items:');
     console.log( JSON.stringify(boxLotZoneRateShippingItems, null, 2) );
@@ -218,22 +224,28 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
 
   // request all Rates simultaneously
   const [
-    tableRates,
+    boxLotTableRates,
+    palletTableRates,
     boxLotZoneRates,
     palletZoneRates
   ]: Array<CarrierService.RateProviderRate[]> = await Promise.all([
-    tableRateProvider.getBoxRates( tableRateShippingItems, opts.destination ),
+    tableRateProvider.getBoxRates( boxLotTableRateShippingItems, opts.destination ),
+    tableRateProvider.getPalletRates( palletTableRateShippingItems, opts.destination ),
     zoneRateProvider.getBoxRates( boxLotZoneRateShippingItems, opts.destination ),
     zoneRateProvider.getPalletRates( palletZoneRateShippingItems, opts.destination )
   ]);
 
   //sort rates
-  tableRates.sort(cmpRateProviderRates);
+  boxLotTableRates.sort(cmpRateProviderRates);
+  palletTableRates.sort(cmpRateProviderRates);
   boxLotZoneRates.sort(cmpRateProviderRates);
   palletZoneRates.sort(cmpRateProviderRates);
 
-  console.log('Table Rates:');
-  console.log( JSON.stringify(tableRates, null, 2) );
+  console.log('Box Lot Table Rates:');
+  console.log( JSON.stringify(boxLotTableRates, null, 2) );
+
+  console.log('Pallet Table Rates:');
+  console.log( JSON.stringify(palletTableRates, null, 2) );
 
   console.log('Box Lot Zone Rates:');
   console.log( JSON.stringify(boxLotZoneRates, null, 2) );
@@ -243,13 +255,15 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
 
 
   const rateProviderRates = ( [] as CarrierService.RateProviderRate[] ).concat(
-    tableRates,
+    boxLotTableRates,
+    palletTableRates,
     boxLotZoneRates,
     palletZoneRates
   );
   
   const totalShippingItems = ( [] as CarrierService.ShippingItem[] ).concat(
-    tableRateShippingItems,
+    boxLotTableRateShippingItems,
+    palletTableRateShippingItems,
     boxLotZoneRateShippingItems,
     palletZoneRateShippingItems
   );
