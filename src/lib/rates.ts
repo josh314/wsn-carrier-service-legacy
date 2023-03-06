@@ -3,10 +3,33 @@ import * as shopify from 'shopify/client';
 import { ZoneRateProvider } from 'zone-rates';
 import { TableRateProvider } from 'table-rates';
 
+function createEstimatedPalletBreakdownServiceShippingItems(): CarrierService.ShippingItem[] {
+
+  const $_ = [];
+  for( let i=0; i<8; i++ ) {
+
+    const _shippingItem: CarrierService.ShippingItem = {
+      packagingType: 'pallet',
+      shipsByFreight: false,
+      weight: 25,
+      weightUnits: 'pounds',
+      height: 21,
+      heightUnits: 'inches',
+      length: 21,
+      lengthUnits: 'inches',
+      width: 21,
+      widthUnits: 'inches'
+    }
+
+    $_.push( _shippingItem )
+  }
+  return $_;
+
+}
 
 /*********************************************
  * Types
- * 
+ *
  * *******************/
 
 class Rate implements CarrierService.Rate {
@@ -23,29 +46,42 @@ class Rate implements CarrierService.Rate {
     this.service_code = 'wholesaleninjas_shipping'; //TODO!
     this.currency = 'USD';
 
-    const unweighedBoxShippingItems = shippingItems.filter( _ => !_.weight && _.packagingType === 'package' );
-    let weighedBoxShippingItems = shippingItems.filter( _ => _.weight && _.packagingType === 'package' );
-    weighedBoxShippingItems = weighedBoxShippingItems.concat( unweighedBoxShippingItems.map( _ => Object.assign( _, { weight: 40 } ) )  ); // add an estimated weight, but don't bother with linear dims
-    const totalBoxWeight = weighedBoxShippingItems.reduce( ( totalBoxWeight, _item ) => totalBoxWeight + _item.weight , 0 );
-
     const anyFreight = rateProviderRates.some( _rpr => _rpr.options.isFreight );
-    const hasPalletBreakdownService = rateProviderRates.filter( isPalletBreakdownServiceRate );
-
-    // determine number of Pallet Breakdown Service boxes
-    const numPalletBreakdownServicePallets = hasPalletBreakdownService.reduce( ( _total, _rpr ) => _total + _rpr.numberOfRatedItems, 0 );
-    const numPalletBreakdownServiceBoxes = 8*numPalletBreakdownServicePallets;
 
     if( anyFreight ) {
       this.service_name = 'Freight Shipping';
       this.description = `Your order contains at least one item that requires freight shipping. You will be contacted by the carrier to arrange a delivery window. Other items shipped separately via standard ground.`;
     }
-    else if ( hasPalletBreakdownService.length ) {
-      this.service_name = 'Standard Ground Shipping with Pallet Breakdown Service';
-      this.description = `Approximately ${ weighedBoxShippingItems.length + numPalletBreakdownServiceBoxes } boxes with a total weight of about ${ totalBoxWeight + numPalletBreakdownServiceBoxes*40 } pounds. Includes Tracking.`;
-    }
     else {
-      this.service_name = 'Standard Ground Shipping';
-      this.description = `Rate for ${ weighedBoxShippingItems.length > 1 ? `${weighedBoxShippingItems.length } boxes` : '1 box' } with a ${weighedBoxShippingItems.length > 1 ? 'total ' : '' }weight of approximately ${totalBoxWeight} pounds. Includes tracking.`;
+      // If not freight, compute and provide some more data on number and weight of boxes
+
+      const unweighedShippingItems = shippingItems.filter( _ => !_.weight );
+      let weighedShippingItems = shippingItems.filter( _ => _.weight );
+
+      // check if any "pallet"-sized shipping items. If this code is run, such items are going to be broken down as the freight option has already been passed
+      const palletShippingItems = weighedShippingItems.filter( _ => _.weight >= 2000 );
+      const boxShippingItems = weighedShippingItems.filter( _ => _.weight < 2000 );
+
+      // compute an estimate of boxes from a pallet
+      const estimatedPalletBreakdownShippingItems =  ([] as CarrierService.ShippingItem[]).concat( ...palletShippingItems.map( createEstimatedPalletBreakdownServiceShippingItems ) );
+
+      const finalEstimatedShippingItems = ([] as CarrierService.ShippingItem[]).concat(
+        boxShippingItems,
+        estimatedPalletBreakdownShippingItems,
+        unweighedShippingItems.map( _ => Object.assign( _, { weight: 40 } ) ), // add an estimated weight, but don't bother with linear dims
+      );
+      const totalBoxWeight = finalEstimatedShippingItems.reduce( ( totalBoxWeight, _item ) => totalBoxWeight + _item.weight , 0 );
+
+      const hasPalletBreakdownService = rateProviderRates.some( isPalletBreakdownServiceRate );
+      if ( hasPalletBreakdownService ) {
+        this.service_name = 'Standard Ground Shipping with Pallet Breakdown Service';
+        this.description = `Approximately ${ finalEstimatedShippingItems.length  } boxes with a total weight of about ${ totalBoxWeight } pounds. Includes Tracking.`;
+      }
+      else {
+        this.service_name = 'Standard Ground Shipping';
+        this.description = `Rate for ${ finalEstimatedShippingItems.length > 1 ? `${ finalEstimatedShippingItems.length } boxes` : '1 box' } with a ${ finalEstimatedShippingItems.length > 1 ? 'total ' : '' }weight of approximately ${totalBoxWeight} pounds. Includes tracking.`;
+      }
+
     }
 
     const cost = rateProviderRates.reduce( ( _total, _rpr ) => _total + _rpr.cost, 0 );
@@ -69,7 +105,7 @@ const shopifyClient: shopify.Client = new shopify.Client({
 
 /**********************************************
  * Functions/Helpers
- * 
+ *
  * ********************************************/
 
 const attachProductToItem = ( products: Array<Shopify.Product> ) => {
@@ -89,7 +125,7 @@ const getOrderItemShippingItems = (rateEachShippingItem: boolean ) => ( orderIte
     throw new Error(`No product found for orderItem: ${JSON.stringify( orderItem )}`);
   }
 
-  const baseShippingItem: CarrierService.ShippingItem = { 
+  const baseShippingItem: CarrierService.ShippingItem = {
     packagingType: product.isTruckload ? 'truckload' : ( product.isPallet ? 'pallet' : 'package' ),
     shipsByFreight: product.shipsByFreight(),
     weight: 0,
@@ -162,8 +198,8 @@ function isPalletBreakdownServiceRate( rateProviderRate: CarrierService.RateProv
 
 /*********************************************
 * Main
-* 
-*********/ 
+*
+*********/
 export async function computeRates(opts: CarrierService.ComputeRateOptions): Promise< Array<Rate> > {
   const productVariantIds: Array<number> = opts.orderItems.map( x => x.variant_id ).filter(x=>x);
   const products: Array<Shopify.Product> = await shopifyClient.getProductData(productVariantIds);
@@ -179,7 +215,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
 
   const palletBreakdownServiceRateValue = await shopifyClient.getPalletBreakdownServiceRateValue();
   const zoneRateProvider: CarrierService.RateProvider = new ZoneRateProvider( palletBreakdownServiceRateValue );
-  
+
 
   const dressedOrderItems: Array<CarrierService.DressedOrderItem> = opts.orderItems.map(attachProductToItem(products));
 
@@ -260,7 +296,7 @@ export async function computeRates(opts: CarrierService.ComputeRateOptions): Pro
     boxLotZoneRates,
     palletZoneRates
   );
-  
+
   const totalShippingItems = ( [] as CarrierService.ShippingItem[] ).concat(
     boxLotTableRateShippingItems,
     palletTableRateShippingItems,
