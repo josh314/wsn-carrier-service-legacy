@@ -19,9 +19,9 @@ function createEstimatedPalletBreakdownServiceShippingItems(): CarrierService.Sh
       lengthUnits: 'inches',
       width: 21,
       widthUnits: 'inches'
-    }
+    };
 
-    $_.push( _shippingItem )
+    $_.push( _shippingItem );
   }
   return $_;
 
@@ -75,11 +75,13 @@ class Rate implements CarrierService.Rate {
       const hasPalletBreakdownService = rateProviderRates.some( isPalletBreakdownServiceRate );
       if ( hasPalletBreakdownService ) {
         this.service_name = 'Standard Ground Shipping with Pallet Breakdown Service';
-        this.description = `Approximately ${ finalEstimatedShippingItems.length  } boxes with a total weight of about ${ totalBoxWeight } pounds. Includes Tracking.`;
+        this.description = 'Any pallet lots in your order will be broken down and re-packed into boxes of manageable size and shipped via standard ground.';
+        // this.description = `Approximately ${ finalEstimatedShippingItems.length  } boxes with a total weight of about ${ totalBoxWeight } pounds. Includes Tracking.`;
       }
       else {
         this.service_name = 'Standard Ground Shipping';
-        this.description = `Rate for ${ finalEstimatedShippingItems.length > 1 ? `${ finalEstimatedShippingItems.length } boxes` : '1 box' } with a ${ finalEstimatedShippingItems.length > 1 ? 'total ' : '' }weight of approximately ${totalBoxWeight} pounds. Includes tracking.`;
+        this.description = `Standard ground shipping provided by one of our reliable national carriers.`;
+        // this.description = `Rate for ${ finalEstimatedShippingItems.length > 1 ? `${ finalEstimatedShippingItems.length } boxes` : '1 box' } with a ${ finalEstimatedShippingItems.length > 1 ? 'total ' : '' }weight of approximately ${totalBoxWeight} pounds. Includes tracking.`;
       }
 
     }
